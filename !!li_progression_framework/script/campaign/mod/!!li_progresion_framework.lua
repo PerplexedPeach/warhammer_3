@@ -29,6 +29,7 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     self.PROGRESSION_CALLBACK = { [0] = nil }
     self.ENTER_CALLBACK = {};
     self.PERSISTENT_CALLBACK = {};
+    self.PERSISTENT_CALLBACK_NAMES = {};
 
     self.shortname = main_shortname;
     self.main_faction = main_faction;
@@ -91,11 +92,18 @@ function LiProgression:stage_enter_callback_register(stage, callback)
     end
 end
 
-function LiProgression:persistent_initialization_register(stage, callback)
+---Register persistent callbacks for when a certain stage or above is reached
+---@param stage integer
+---@param callback function
+---@param name any|nil
+function LiProgression:persistent_initialization_register(stage, callback, name)
     -- put registration of stage-specific persistent callbacks inside it
     -- at initialization, all stages up to and including the current one will be called
     -- needed for proper loading
-    self:log("Registering persistent factories for stage " .. tostring(stage));
+    if name == nil then
+        name = tostring(callback);
+    end
+    self:log("Registering persistent factories for stage " .. tostring(stage) .. " " .. tostring(name));
     if not is_number(stage) then
         self:log("Rejecting registration of invalid stage");
         return
@@ -103,8 +111,11 @@ function LiProgression:persistent_initialization_register(stage, callback)
     if self.PERSISTENT_CALLBACK[stage] then
         local callbacks = self.PERSISTENT_CALLBACK[stage];
         callbacks[#callbacks + 1] = callback;
+        local names = self.PERSISTENT_CALLBACK_NAMES[stage];
+        names[#callbacks + 1] = name;
     else
         self.PERSISTENT_CALLBACK[stage] = { callback };
+        self.PERSISTENT_CALLBACK_NAMES[stage] = { name };
     end
 end
 
@@ -178,9 +189,10 @@ end
 
 function LiProgression:call_persistent_callback_factory(stage)
     local persistent_callbacks = self.PERSISTENT_CALLBACK[stage];
+    local names = self.PERSISTENT_CALLBACK_NAMES[stage];
     if persistent_callbacks then
         for i = 1, #persistent_callbacks do
-            self:log("Registering persistent callback for stage " .. tostring(stage));
+            self:log("Calling persistent callback for stage " .. tostring(stage) .. " " .. tostring(names[i]));
             persistent_callbacks[i](stage);
         end
     end
