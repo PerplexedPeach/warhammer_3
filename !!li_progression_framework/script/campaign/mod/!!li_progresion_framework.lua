@@ -120,7 +120,7 @@ function LiProgression:persistent_initialization_register(stage, callback, name)
 end
 
 function LiProgression:find_subtype_in_faction(faction, subtype)
-    if faction:is_null_interface() then
+    if faction == nil or faction == false or faction:is_null_interface() then
         return nil;
     end
     local characters = faction:character_list();
