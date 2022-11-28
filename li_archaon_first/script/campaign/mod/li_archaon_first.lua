@@ -3,7 +3,7 @@ local faction = "wh_main_chs_chaos";
 local subtype = "wh_main_chs_archaon";
 -- stubs in case we don't have the progression framework
 local function find_subtype_in_faction(faction, subtype)
-    if faction:is_null_interface() then
+    if faction == nil or faction:is_null_interface() then
         return nil;
     end
     local characters = faction:character_list();
@@ -17,20 +17,20 @@ local function find_subtype_in_faction(faction, subtype)
 end
 
 local function get_character_all(subtype, factions_to_consider)
+    local faction_list = cm:get_human_factions();
+    for i = 1, #faction_list do
+        local char = find_subtype_in_faction(cm:get_faction(faction_list[i]), subtype);
+        if char then
+            return char;
+        end
+    end
+
     if factions_to_consider ~= nil then
         for j = 1, #factions_to_consider do
             local char = find_subtype_in_faction(cm:get_faction(factions_to_consider[j]), subtype);
             if char then
                 return char;
             end
-        end
-    end
-
-    faction_list = cm:get_human_factions();
-    for i = 1, #faction_list do
-        local char = find_subtype_in_faction(cm:get_faction(faction_list[i]), subtype);
-        if char then
-            return char;
         end
     end
     return nil;
