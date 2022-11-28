@@ -16,11 +16,10 @@ LiProgression = {};
 ---@param main_art_set string art set prefix for main character
 ---@param main_event string custom event name for the main corruption event (e.g. ScriptEvent<shortname>CorruptEvent)
 ---@param confed_factions table[string] array of faction keys that could possibly confederate the main character
----@param name_prefix_length integer length of name prefix, such as 11 for li_katarin_<stage name>
 ---@param names_name_id_prefix string prefix of names name ID (stage will be appended to become new ID for each stage's name)
 ---@return LiProgression
 function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_set, main_event, confed_factions,
-                           name_prefix_length, names_name_id_prefix)
+                           names_name_id_prefix)
     local self = {} ---@class LiProgression
     setmetatable(self, {
         __index = LiProgression
@@ -37,7 +36,6 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     self.main_art_set = main_art_set;
     self.main_event = main_event;
     self.confed_factions = confed_factions;
-    self.name_prefix_length = name_prefix_length;
     self.names_name_id_prefix = names_name_id_prefix;
     -- for variant selector; assumes that main_art_set is for the base art set
     self.unlocked_art_sets = { self.main_art_set };
@@ -183,8 +181,10 @@ end
 
 function LiProgression:get_art_set_name(stage)
     local stage_name = self.REGISTERED_STAGES[stage];
-    -- #TODO why do I need the prefix li_morathi...? why not just save the suffix and this way we can ignore the name length?
-    local art_set_name = self.main_art_set .. string.sub(stage_name, self.name_prefix_length);
+    local art_set_name = self.main_art_set;
+    if stage > 0 then
+        art_set_name = self.main_art_set .. "_" .. stage_name;
+    end
     return art_set_name;
 end
 
@@ -193,7 +193,14 @@ function LiProgression:switch_art_set_stage(stage)
     local art_set_name = self:get_art_set_name(stage);
     self:log(art_set_name);
     cm:add_character_model_override(self:get_char(), art_set_name);
-    -- #TODO set variant selector's active variant
+
+    -- unlock this stage for the variant selector
+    self.unlocked_art_sets[stage + 1] = art_set_name;
+    if Set_character_variants ~= nil then
+        Set_character_variants(self.main_subtype, self.unlocked_art_sets);
+        Has_set_character_variant(self:get_char():cqi(), stage + 1);
+        self:log("Unlocked stage " .. tostring(stage) .. " variant for variant selector");
+    end
 end
 
 function LiProgression:call_persistent_callback_factory(stage)
@@ -241,14 +248,6 @@ function LiProgression:set_stage(stage)
         end
         cm:set_saved_value(self.stored_stage_name, stage);
         self:call_persistent_callback_factory(stage);
-        -- unlock this stage for the variant selector
-        self.unlocked_art_sets[stage + 1] = self:get_art_set_name(stage);
-        if Set_character_variants ~= nil then
-            Set_character_variants(self.main_subtype, self.unlocked_art_sets);
-            Has_set_character_variant(self:get_char():cqi(), stage + 1);
-            self:log("Unlocked stage " .. tostring(stage) .. " variant for variant selector");
-        end
-
         return stage;
     else
         self:log("cannot switch to unregistered stage " .. tostring(stage));
