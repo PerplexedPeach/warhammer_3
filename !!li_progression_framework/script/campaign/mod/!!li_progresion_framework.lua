@@ -39,6 +39,8 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     self.confed_factions = confed_factions;
     self.name_prefix_length = name_prefix_length;
     self.names_name_id_prefix = names_name_id_prefix;
+    -- for variant selector; assumes that main_art_set is for the base art set
+    self.unlocked_art_sets = { self.main_art_set };
 
     self.stored_stage_name = "li_" .. main_shortname .. "_current_stage";
     self.last_progression_turn_name = "li_" .. main_shortname .. "_last_progression";
@@ -179,12 +181,19 @@ function LiProgression:get_char()
     return self:get_character_faction_leader(self.main_subtype, self.main_faction, self.confed_factions);
 end
 
+function LiProgression:get_art_set_name(stage)
+    local stage_name = self.REGISTERED_STAGES[stage];
+    -- #TODO why do I need the prefix li_morathi...? why not just save the suffix and this way we can ignore the name length?
+    local art_set_name = self.main_art_set .. string.sub(stage_name, self.name_prefix_length);
+    return art_set_name;
+end
+
 function LiProgression:switch_art_set_stage(stage)
     -- change 3D model and 2D portraits
-    local stage_name = self.REGISTERED_STAGES[stage];
-    local art_set_name = self.main_art_set .. string.sub(stage_name, self.name_prefix_length);
+    local art_set_name = self:get_art_set_name(stage);
     self:log(art_set_name);
     cm:add_character_model_override(self:get_char(), art_set_name);
+    -- #TODO set variant selector's active variant
 end
 
 function LiProgression:call_persistent_callback_factory(stage)
@@ -232,6 +241,14 @@ function LiProgression:set_stage(stage)
         end
         cm:set_saved_value(self.stored_stage_name, stage);
         self:call_persistent_callback_factory(stage);
+        -- unlock this stage for the variant selector
+        self.unlocked_art_sets[stage + 1] = self:get_art_set_name(stage);
+        if Set_character_variants ~= nil then
+            Set_character_variants(self.main_subtype, self.unlocked_art_sets);
+            Has_set_character_variant(self:get_char():cqi(), stage + 1);
+            self:log("Unlocked stage " .. tostring(stage) .. " variant for variant selector");
+        end
+
         return stage;
     else
         self:log("cannot switch to unregistered stage " .. tostring(stage));
