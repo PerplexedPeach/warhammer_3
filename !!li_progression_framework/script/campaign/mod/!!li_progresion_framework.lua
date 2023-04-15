@@ -193,12 +193,21 @@ function LiProgression:switch_art_set_stage(stage)
     local art_set_name = self:get_art_set_name(stage);
     self:log(art_set_name);
     cm:add_character_model_override(self:get_char(), art_set_name);
+    self:unlock_art_set_stage(stage);
+end
 
+function LiProgression:unlock_art_set_stage(stage)
+    local art_set_name = self:get_art_set_name(stage);
     -- unlock this stage for the variant selector
     self.unlocked_art_sets[stage + 1] = art_set_name;
+    -- different conventions for variant selector
     if Set_character_variants ~= nil then
         Set_character_variants(self.main_subtype, self.unlocked_art_sets);
         Has_set_character_variant(self:get_char():cqi(), stage + 1);
+        self:log("Unlocked stage " .. tostring(stage) .. " variant for variant selector");
+    elseif marthvs ~= nil then
+        marthvs:set_subtype_variants(self.main_subtype, self.unlocked_art_sets);
+        marthvs:set_character_variant_index(self:get_char():cqi(), stage + 1);
         self:log("Unlocked stage " .. tostring(stage) .. " variant for variant selector");
     end
 end
@@ -273,11 +282,13 @@ function LiProgression:initialize()
     local current_stage = self:get_stage();
     self:log("---- start " .. tostring(current_stage));
     cm:callback(function()
-        self:set_stage(current_stage);
         for stage = 1, current_stage - 1 do
+            -- unlock the previous stage art sets to allow variant selector to switch between them
+            self:unlock_art_set_stage(stage);
             -- don't need to do <= since set stage will call the current stage's persistent callback factory
             self:call_persistent_callback_factory(stage);
         end
+        self:set_stage(current_stage);
     end, 1.3, "Li_" .. self.shortname .. "_initialize");
 end
 
