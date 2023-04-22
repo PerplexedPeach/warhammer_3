@@ -3,3 +3,4 @@ tw_lib
 !*.lua
 !.vscode
 !.gitignore
+!*.py
