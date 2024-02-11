@@ -15,10 +15,14 @@ local d_character_bundle_name = "li_effect_bundle_daemonize_character";
 local city_to_dilemma = {
     ["wh3_main_chaos_region_praag"] = "li_katarin_stage_4_praag",
     ["wh3_main_combi_region_praag"] = "li_katarin_stage_4_praag",
+    ["cr_oldworld_region_praag"] = "li_katarin_stage_4_praag",
     ["wh3_main_chaos_region_kislev"] = "li_katarin_stage_4_kislev",
     ["wh3_main_combi_region_kislev"] = "li_katarin_stage_4_kislev",
+    ["cr_oldworld_region_kislev"] = "li_katarin_stage_4_kislev",
     ["wh3_main_combi_region_erengrad"] = "li_katarin_stage_4_erengrad",
     ["wh3_main_chaos_region_erengrad"] = "li_katarin_stage_4_erengrad",
+    ["cr_oldworld_region_erengrad"] = "li_katarin_stage_4_erengrad",
+
 };
 local events_seen_name = "li_katarin_daemonize_events_seen";
 

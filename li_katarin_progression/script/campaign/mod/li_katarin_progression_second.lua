@@ -11,10 +11,13 @@ end
 local city_to_dilemma = {
     ["wh3_main_chaos_region_praag"] = "li_katarin_stage_1_praag",
     ["wh3_main_combi_region_praag"] = "li_katarin_stage_1_praag",
+    ["cr_oldworld_region_praag"] = "li_katarin_stage_1_praag",
     ["wh3_main_chaos_region_kislev"] = "li_katarin_stage_1_kislev",
     ["wh3_main_combi_region_kislev"] = "li_katarin_stage_1_kislev",
+    ["cr_oldworld_region_kislev"] = "li_katarin_stage_1_kislev",
     ["wh3_main_combi_region_erengrad"] = "li_katarin_stage_1_erengrad",
     ["wh3_main_chaos_region_erengrad"] = "li_katarin_stage_1_erengrad",
+    ["cr_oldworld_region_erengrad"] = "li_katarin_stage_1_erengrad",
 };
 local events_to_progress = 3;
 local events_seen_name = "li_katarin_second_events_seen";
