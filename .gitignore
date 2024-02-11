@@ -1,6 +1,12 @@
-*.*
 tw_lib
-!*.lua
 !.vscode
 !.gitignore
 !*.py
+script_dump
+submods
+*/.git
+**/*.dds
+**/*.material
+Backup
+*.pack
+*.png
