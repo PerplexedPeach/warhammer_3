@@ -39,7 +39,7 @@ end
 local function get_character_faction_leader(subtype, faction_name, possible_confed_factions)
     -- try to shortcut getting the character
     local faction = cm:get_faction(faction_name);
-    if not faction:is_null_interface() then
+    if faction and not faction:is_null_interface() then
         local leader = faction:faction_leader();
         if not leader:is_null_interface() and leader:character_subtype(subtype) then
             return faction:faction_leader();
