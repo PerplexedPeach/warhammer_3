@@ -33,12 +33,16 @@ local function visit_major_kislev_city(context)
         return;
     end
 
+    li_kat:log("Checking for Kislev city event trigger");
+
     local events_seen = cm:get_saved_value(events_seen_name) or 0;
     -- check if enough events have been triggered, at which point we offer the stage up dilemma
     if events_seen >= events_to_progress then
         li_kat:trigger_progression(context, kat:faction():is_human());
         return;
     end
+
+    li_kat:log("Events seen " .. tostring(events_seen) .. " out of " .. tostring(events_to_progress) .. " needed to progress to stage 2");
 
     -- check what region we're in and if we can trigger the event
     local region = kat:region();

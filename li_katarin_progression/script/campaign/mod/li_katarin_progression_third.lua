@@ -4,6 +4,9 @@ local notification_dilemma_name = "li_notify_ready_for_collar";
 local li_ai_corruption_chance = 60;
 local this_stage = 3;
 
+local mission_key = "li_katarin_battle";
+
+
 local function stage_enter_callback()
     li_kat:change_title(this_stage);
 end
@@ -40,6 +43,9 @@ local function visit_major_kislev_city(context)
     if events_seen == events_to_progress then
         if kat:faction():is_human() then
             cm:trigger_dilemma(kat:faction():name(), notification_dilemma_name);
+
+            li_miao:log("triggering battle mission");
+            cm:trigger_mission(kat:faction():name(), mission_key, true);
         end
         -- increment by 1 so we don't have this notification fire again
         cm:set_saved_value(events_seen_name, events_seen + 1);
@@ -71,6 +77,10 @@ local function visit_major_kislev_city(context)
 end
 
 local function kat_loss_callback(context)
+    if li_kat:get_stage() ~= 2 then
+        return
+    end
+
     -- only care if we've seen sufficient events
     local events_seen = cm:get_saved_value(events_seen_name) or 0;
     if events_seen < events_to_progress then
@@ -149,8 +159,11 @@ local function broadcast_self()
         true
     );
 
-    -- finishing event after visiting cities
-    core:add_listener("BattleCompletedKatStage2Transition", "BattleCompleted", true, kat_loss_callback, true);
+    
+    if li_kat:get_stage() < 3 then
+        -- finishing event after visiting cities
+        core:add_listener("BattleCompletedKatStage2Transition", "BattleCompleted", true, kat_loss_callback, true);
+    end
 end
 
 cm:add_first_tick_callback(function() broadcast_self() end);

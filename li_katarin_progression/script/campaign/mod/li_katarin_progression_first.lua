@@ -26,6 +26,7 @@ local function initial_amulet_offer_after_battle_listener(context)
         return
     end
     li_kat:log("Kat in battle " .. tostring(is_attacker) .. " defender " .. tostring(is_defender));
+    li_kat:log("Checking if we should offer amulet");
 
     -- don't think ability used in battle works for AI; instead use a percentage based system for them
     local character = li_kat:get_char();
