@@ -1,7 +1,14 @@
+# Ignore everything
+*
+
+# Then un-ignore all directories, to allow navigating into them
+!*/
+
 tw_lib
 !.vscode
 !.gitignore
 !*.py
+!*.lua
 script_dump
 submods
 */.git
@@ -11,3 +18,5 @@ Backup
 *.pack
 *.png
 *.sublime-project
+**/.vscode
+**/*.xml
