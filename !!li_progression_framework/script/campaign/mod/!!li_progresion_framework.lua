@@ -151,6 +151,7 @@ function LiProgression:get_character_all(subtype, factions_to_consider)
         end
     end
 
+    self:error("Could not find character " .. subtype);
     return nil;
 end
 
@@ -368,13 +369,32 @@ function LiProgression:attacker_or_defender()
     end
 end
 
+local nkari_subtype = "wh3_main_sla_nkari";
+local nkari_faction = "wh3_main_sla_seducers_of_slaanesh";
+
+local sigvald_subtype = "wh_dlc01_chs_prince_sigvald";
+local sigvald_faction = "wh3_dlc20_chs_sigvald";
+
+local azazel_subtype = "wh3_dlc20_sla_azazel";
+local azazel_faction = "wh3_dlc20_chs_azazel";
+
 function LiProgression:opponent_slaanesh(faction)
     if faction:culture() == "wh3_main_sla_slaanesh" then
         return true;
-    elseif faction:culture() == "wh_main_chs_chaos" then
-        return faction:name() == "wh3_dlc20_chs_sigvald" or faction:name() == "wh3_dlc20_chs_azazel";
     end
     if faction:name() == "wh3_main_rogue_the_pleasure_tide" then
+        return true;
+    end
+    local nkari = self:get_character_faction_leader(nkari_subtype, nkari_faction);
+    local sigvald = self:get_character_faction_leader(sigvald_subtype, sigvald_faction);
+    local azazel = self:get_character_faction_leader(azazel_subtype, azazel_faction);
+    if nkari ~= nil and not nkari:faction():is_null_interface() and faction:name() == nkari:faction():name() then
+        return true;
+    end
+    if sigvald ~= nil and not sigvald:faction():is_null_interface() and faction:name() == sigvald:faction():name() then
+        return true;
+    end
+    if azazel ~= nil and not azazel:faction():is_null_interface() and faction:name() == azazel:faction():name() then
         return true;
     end
     return false;
