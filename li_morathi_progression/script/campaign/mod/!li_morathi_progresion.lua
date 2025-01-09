@@ -5,6 +5,7 @@ local confed_factions = { "wh2_main_def_cult_of_pleasure", "wh2_main_def_naggaro
     "wh2_dlc11_def_the_blessed_dread", "wh2_twa03_def_rakarth", "wh2_main_def_har_ganeth" };
 local art_set = "wh2_main_art_set_def_morathi";
 local names_name_id = "1248512";
+---@class LiProgression
 li_mor = LiProgression:new("morathi", faction, subtype, art_set, LI_MAIN_EVENT, confed_factions, names_name_id);
 
 local subbiness_key = "li_morathi_subdom";
