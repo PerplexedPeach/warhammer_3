@@ -1,6 +1,7 @@
 local province_bundle_name = "li_miao_slaanesh_adaptation";
 local ambient_bundle_name = "li_miao_slaanesh_ambient";
 local upkeep_bundle_name = "li_miao_slaanesh_upkeep";
+local ignore_adaptation = "do_ignore_corruption_adaptation";
 
 -- [adaption_level][corruption_level]
 local growth_effects = {
@@ -31,6 +32,12 @@ local gdp_effects = {
 -- [adaption_level]
 local ambient_corruption_effects = { 0, 0, 1, 1, 2, 2, 3 };
 
+-- don't add any adaptation levels, need this to prevent breaking saves
+function li_miao:do_ignore_adaptation()
+    cm:set_saved_value("do_ignore_corruption_adaptation", true);
+    return cm:get_saved_value("do_ignore_corruption_adaptation");
+end
+
 local function adapt_province(province, adaption_level)
     -- adaption level 0 == stage 0 means no benefits from corruption
     local region = province:capital_region();
@@ -52,6 +59,10 @@ local function adapt_province(province, adaption_level)
         return sla_corr;
     end
 
+    if cm:get_saved_value(ignore_adaptation) then
+        return sla_corr;
+    end
+
     local bundle = cm:create_new_custom_effect_bundle(province_bundle_name);
     bundle:add_effect("wh3_main_effect_province_growth_slaanesh_corruption", "region_to_province_own",
         growth_effects[adaption_level][corruption_level]);
@@ -68,8 +79,13 @@ local function adapt_all_provinces(adaption_level)
     -- adjust every owned province
     local faction = li_miao:get_char():faction();
     local province_list = faction:provinces();
-    li_miao:log("Corruption adapation at level " ..
-        tostring(adaption_level) .. " for " .. tostring(province_list:num_items()) .. " provinces");
+    local should_ignore = cm:get_saved_value(ignore_adaptation);
+    if should_ignore then
+        li_miao:log("Ignoring corruption adaptation");
+    else
+        li_miao:log("Corruption adapation at level " ..
+            tostring(adaption_level) .. " for " .. tostring(province_list:num_items()) .. " provinces");
+    end
     local total_cor = 0;
     for i = 0, province_list:num_items() - 1 do
         total_cor = total_cor + adapt_province(province_list:item_at(i):province(), adaption_level);
@@ -80,7 +96,9 @@ local function adapt_all_provinces(adaption_level)
     if (faction:has_effect_bundle(upkeep_bundle_name)) then
         cm:remove_effect_bundle(upkeep_bundle_name, faction:name());
     end
-    if avg_cor > 0 then
+
+
+    if not should_ignore and avg_cor > 0 then
         local bundle = cm:create_new_custom_effect_bundle(upkeep_bundle_name);
         bundle:add_effect("wh3_main_effect_upkeep_sla_all", "faction_to_force_own", -math.floor(avg_cor / 2));
         bundle:add_effect("wh3_main_effect_upkeep_cth_peasant", "faction_to_force_own", math.floor(avg_cor));
@@ -94,7 +112,7 @@ local function adapt_all_provinces(adaption_level)
     end
 
     local to_add = ambient_corruption_effects[adaption_level + 1];
-    if to_add > 0 then
+    if not should_ignore and to_add > 0 then
         local bundle = cm:create_new_custom_effect_bundle(ambient_bundle_name);
         bundle:add_effect("wh3_main_effect_corruption_slaanesh_events", "faction_to_faction_own", to_add);
         bundle:set_duration(0);

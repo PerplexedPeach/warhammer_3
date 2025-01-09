@@ -1,7 +1,7 @@
 local kat_subtype = "wh3_main_ksl_katarin";
 -- stubs in case we don't have the progression framework
 local function find_subtype_in_faction(faction, subtype)
-    if faction == nil or faction:is_null_interface() then
+    if faction == nil or faction == false or faction:is_null_interface() then
         return nil;
     end
     local characters = faction:character_list();

@@ -201,14 +201,20 @@ function LiProgression:unlock_art_set_stage(stage)
     local art_set_name = self:get_art_set_name(stage);
     -- unlock this stage for the variant selector
     self.unlocked_art_sets[stage + 1] = art_set_name;
+    local this_char = self:get_char();
+    if this_char == nil then
+        self:error("Could not find character to unlock art set stage (not an error if they are wiped out)");
+        return;
+    end
+
     -- different conventions for variant selector
     if Set_character_variants ~= nil then
         Set_character_variants(self.main_subtype, self.unlocked_art_sets);
-        Has_set_character_variant(self:get_char():cqi(), stage + 1);
+        Has_set_character_variant(this_char:cqi(), stage + 1);
         self:log("Unlocked stage " .. tostring(stage) .. " variant for variant selector");
     elseif marthvs ~= nil then
         marthvs:set_subtype_variants(self.main_subtype, self.unlocked_art_sets);
-        marthvs:set_character_variant_index(self:get_char():cqi(), stage + 1);
+        marthvs:set_character_variant_index(this_char:cqi(), stage + 1);
         self:log("Unlocked stage " .. tostring(stage) .. " variant for variant selector");
     end
 end

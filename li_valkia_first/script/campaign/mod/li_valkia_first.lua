@@ -1,7 +1,7 @@
 local valk_subtype = "wh3_dlc20_kho_valkia";
 -- stubs in case we don't have the progression framework
 local function find_subtype_in_faction(faction, subtype)
-    if faction:is_null_interface() then
+    if faction == nil or faction == false or faction:is_null_interface() then
         return nil;
     end
     local characters = faction:character_list();
