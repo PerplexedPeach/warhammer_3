@@ -9,6 +9,8 @@ local codex_mission_finished_key = "li_morathi_progression_first_battle_finished
 local set_piece_battle_key = "li_morathi_progression_first_battle";
 local mission_fight_listener_name = "Li_Blank_Codex_Battle_Listener";
 
+local alith_fight_mission_key = "li_morathi_progression_alith_battle";
+
 local alliance_anc_key = "wh3_main_anc_follower_sla_epicurean";
 local alliance_mission_key = "li_morathi_progression_slaanesh_alliance";
 local alliance_mission_finished_key = "li_morathi_progression_slaanesh_alliance_finished";
@@ -105,7 +107,6 @@ local function codex_mission_trigger(context)
     if mor:faction():is_human() then
         li_mor:log("triggering codex mission");
         cm:trigger_mission(mor:faction():name(), codex_mission_key, true);
-
     else
         -- give AI blank codex directly
         li_mor:log("skipping mission battle for AI")
@@ -158,25 +159,27 @@ local function trigger_alith_anar_mission()
     mm:trigger();
 end
 
-local function alith_anar_capture_start(context)
+local function alith_anar_capture_start(context, ignore_alliance)
     local mor = li_mor:get_char();
     if mor == nil then
         return;
     end
 
-
-    -- check if we have an alliance with Slaanesh faction
-    local has_slaanesh_alliance = false;
-    local faction_list = mor:faction():factions_allied_with();
-    for i = 0, faction_list:num_items() - 1 do
-        if faction_list:item_at(i):culture() == "wh3_main_sla_slaanesh" then
-            has_slaanesh_alliance = true;
-            break;
+    ignore_alliance = ignore_alliance or false;
+    if ignore_alliance == false then
+        -- check if we have an alliance with Slaanesh faction
+        local has_slaanesh_alliance = false;
+        local faction_list = mor:faction():factions_allied_with();
+        for i = 0, faction_list:num_items() - 1 do
+            if faction_list:item_at(i):culture() == "wh3_main_sla_slaanesh" then
+                has_slaanesh_alliance = true;
+                break;
+            end
         end
-    end
 
-    if not has_slaanesh_alliance then
-        return;
+        if not has_slaanesh_alliance then
+            return;
+        end
     end
 
     li_mor:log("has alliance with Slaanesh and finished codex quest");
@@ -193,7 +196,10 @@ local function alith_anar_capture_start(context)
     end
     -- additionally trigger mission if we're not on it; note that we may fail and need to restart
     if mor:faction():is_human() and not cm:get_saved_value(alith_anar_mission_key) then
-        trigger_alith_anar_mission();
+        -- on-campaign kill mission
+        -- trigger_alith_anar_mission();
+        -- set piece battle mission
+        cm:trigger_mission(mor:faction():name(), alith_fight_mission_key, true);
     end
 end
 
@@ -210,7 +216,8 @@ local function keep_target_alive_for_mission(context)
         -- spawn alith with an army in his home province
         local spawn_region = "wh3_main_combi_region_karond_kar";
         local faction_name = li_mor.alith_anar.faction;
-        local unit_list = "wh2_dlc15_hef_mon_arcane_phoenix_0,wh2_main_hef_art_eagle_claw_bolt_thrower,wh2_main_hef_art_eagle_claw_bolt_thrower,wh2_main_hef_inf_lothern_sea_guard_1,wh2_main_hef_inf_lothern_sea_guard_1,wh2_main_hef_inf_lothern_sea_guard_1,wh2_main_hef_inf_lothern_sea_guard_1,wh2_main_hef_inf_spearmen_0,wh2_main_hef_inf_spearmen_0,wh2_main_hef_inf_spearmen_0,wh2_dlc10_hef_inf_shadow_warriors_0,wh2_dlc10_hef_inf_shadow_warriors_0,wh2_dlc10_hef_inf_shadow_warriors_0,wh2_dlc10_hef_inf_shadow_warriors_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0";
+        local unit_list =
+        "wh2_dlc15_hef_mon_arcane_phoenix_0,wh2_main_hef_art_eagle_claw_bolt_thrower,wh2_main_hef_art_eagle_claw_bolt_thrower,wh2_main_hef_inf_lothern_sea_guard_1,wh2_main_hef_inf_lothern_sea_guard_1,wh2_main_hef_inf_lothern_sea_guard_1,wh2_main_hef_inf_lothern_sea_guard_1,wh2_main_hef_inf_spearmen_0,wh2_main_hef_inf_spearmen_0,wh2_main_hef_inf_spearmen_0,wh2_dlc10_hef_inf_shadow_warriors_0,wh2_dlc10_hef_inf_shadow_warriors_0,wh2_dlc10_hef_inf_shadow_warriors_0,wh2_dlc10_hef_inf_shadow_warriors_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0,wh2_dlc10_hef_inf_shadow_walkers_0";
         li_mor:log("respawning Alith Anar faction");
         li_mor:respawn_faction(spawn_region, faction_name, unit_list);
         alith = li_mor:get_target_character(li_mor.alith_anar);
@@ -233,12 +240,7 @@ local function alith_anar_capture_failed(context)
     cm:set_saved_value(alith_anar_mission_key, false);
 end
 
-local function alith_anar_capture_end(context)
-    local mission_key = context:mission():mission_record_key();
-    if mission_key ~= alith_anar_mission_key then
-        return;
-    end
-
+local function do_alith_anar_capture_end()
     local mor = li_mor:get_char();
     local alith_anar = li_mor:get_target_character(li_mor.alith_anar);
     if mor == nil or alith_anar == nil then
@@ -248,12 +250,13 @@ local function alith_anar_capture_end(context)
     li_mor:log("successfully finished alith anar capture mission");
     -- remove Alith Anar from his faction
     cm:set_saved_value(alith_anar_mission_finished_key, true);
-    --spawn this force as a guard against the player killing Alith Anar and occupying his last settlement at the same time. kill them with notice supressed after confederation 
+    --spawn this force as a guard against the player killing Alith Anar and occupying his last settlement at the same time. kill them with notice supressed after confederation
     local cqi_generated = nil;
-    cm:create_force_with_general("wh2_main_hef_nagarythe", "", "wh3_main_combi_region_hag_graef", 74, 590, "general", "wh2_main_def_dreadlord_fem", "names_name_2147359620", "", "", "", true,
-    function (cqi) 
-        cqi_generated = cqi;
-    end
+    cm:create_force_with_general("wh2_main_hef_nagarythe", "", "wh3_main_combi_region_hag_graef", 74, 590, "general",
+        "wh2_main_def_dreadlord_fem", "names_name_2147359620", "", "", "", true,
+        function(cqi)
+            cqi_generated = cqi;
+        end
     );
 
     -- find faction to transfer to
@@ -289,6 +292,16 @@ local function alith_anar_capture_end(context)
     li_mor:clear_faction_character_stance(alith_anar:faction());
     cm:force_confederation(mor:faction():name(), alith_anar:faction():name());
     li_mor:delayed_kill_cqi(cqi_generated, 15);
+end
+
+local function alith_anar_capture_end(context)
+    local mission_key = context:mission():mission_record_key();
+    -- allow both quest battle mission and on-campus kill mission to trigger this
+    if mission_key ~= alith_anar_mission_key or mission_key ~= alith_fight_mission_key then
+        return;
+    end
+
+    do_alith_anar_capture_end();
 end
 
 local function delayed_progression_check(context)
@@ -411,6 +424,10 @@ local function broadcast_self()
             true
         );
     end
+end
+
+function Debug_start_alith_anar()
+    alith_anar_capture_start(nil, true);
 end
 
 cm:add_first_tick_callback(function() broadcast_self() end);
