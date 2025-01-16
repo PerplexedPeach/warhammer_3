@@ -7,6 +7,43 @@ function Mod_log(text)
     end
 end
 
+function Is_character_attacker_or_defender(pending_battle, subtype_key)
+    local is_attacker = false
+    local is_defender = false
+	local attacker = pending_battle:attacker()
+	local defender = pending_battle:defender()
+	local secondary_attackers = pending_battle:secondary_attackers()
+	local secondary_defenders = pending_battle:secondary_defenders()
+
+    if attacker:character_subtype_key() == subtype_key then
+        is_attacker = true
+    end
+
+    if defender:character_subtype_key() == subtype_key then
+        is_defender = true
+    end
+
+    for i = 0, secondary_attackers:num_items() - 1 do
+        attacker = secondary_attackers:item_at(i);
+
+        if attacker:character_subtype_key() == subtype_key then
+            is_attacker = true
+        end
+    end
+
+    for i = 0, secondary_defenders:num_items() - 1 do
+        defender = secondary_defenders:item_at(i);
+
+        if defender:character_subtype_key() == subtype_key then
+            is_defender = true
+        end
+    end
+
+
+    return is_attacker, is_defender
+end
+
+
 ---@class LiProgression
 LiProgression = {};
 ---Main progression interface for a character
@@ -54,6 +91,7 @@ end
 
 function LiProgression:error(message)
     self:log(" [ERROR] " .. message);
+    script_error(self.shortname .. " " .. message);
 end
 
 --- Fire a main corruption event that others can listen to
@@ -363,16 +401,7 @@ function LiProgression:attacker_or_defender()
     if not pb:has_been_fought() then
         return false, false;
     end
-    local main = self:get_char();
-    local involved = cm:pending_battle_cache_char_is_involved(main);
-    if not involved then
-        return false, false;
-    end
-    if cm:pending_battle_cache_char_is_defender(main) then
-        return false, true;
-    else
-        return true, false;
-    end
+    return Is_character_attacker_or_defender(pb, self.main_subtype);
 end
 
 local nkari_subtype = "wh3_main_sla_nkari";
