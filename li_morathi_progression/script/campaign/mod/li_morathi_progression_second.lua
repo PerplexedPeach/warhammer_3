@@ -8,6 +8,8 @@ local malus_capture_mission_key = "li_morathi_progression_malus";
 local malus_capture_mission_finished_key = "li_morathi_progression_malus_finished";
 local malus_capture_delay_process = "li_morathi_progression_malus_captured";
 
+local malus_fight_mission_key = "li_morathi_progression_malus_battle";
+
 local malus_torture_start = "li_morathi_progression_malus_zeroth";
 local malus_first = "li_morathi_progression_malus_first";
 local malus_second = "li_morathi_progression_malus_second";
@@ -103,6 +105,7 @@ local function trigger_malus_mission()
     mm:trigger();
 end
 
+
 local function malus_capture_start(context)
     local mor = li_mor:get_char();
     if mor == nil then
@@ -111,7 +114,9 @@ local function malus_capture_start(context)
 
     if mor:faction():is_human() then
         li_mor:log("starting Malus capture quest");
-        trigger_malus_mission();
+        -- trigger_malus_mission();
+        cm:trigger_mission(mor:faction():name(), malus_fight_mission_key, true);
+        cm:set_saved_value(malus_capture_mission_key, true);
     else
         -- add reward directly
         li_mor:log("skipping Malus mission for AI, trigger random progression");
@@ -122,7 +127,7 @@ end
 local function malus_capture_end(context)
     local mission_key = context:mission():mission_record_key();
     li_mor:log("checking mission success against mission " .. mission_key);
-    if mission_key ~= malus_capture_mission_key then
+    if mission_key ~= malus_capture_mission_key and mission_key ~= malus_fight_mission_key then
         return;
     end
 
@@ -180,7 +185,7 @@ end
 
 local function malus_capture_failed(context)
     local mission_key = context:mission():mission_record_key();
-    if mission_key ~= malus_capture_mission_key then
+    if mission_key ~= malus_capture_mission_key and mission_key ~= malus_fight_mission_key then
         return;
     end
     -- mission should retrigger when the target recovers
@@ -364,6 +369,10 @@ local function broadcast_self()
     li_mor:stage_register(name, this_stage, progression_callback, stage_enter_callback);
     li_mor:persistent_initialization_register(this_stage - 1, progress_to_this_stage_triggers, "triggers for stage " .. this_stage);
 
+end
+
+function Debug_malus_capture_start()
+    malus_capture_start(nil);
 end
 
 cm:add_first_tick_callback(function() broadcast_self() end);

@@ -200,6 +200,7 @@ local function alith_anar_capture_start(context, ignore_alliance)
         -- trigger_alith_anar_mission();
         -- set piece battle mission
         cm:trigger_mission(mor:faction():name(), alith_fight_mission_key, true);
+        cm:set_saved_value(alith_anar_mission_key, true);
     end
 end
 
@@ -232,7 +233,7 @@ end
 
 local function alith_anar_capture_failed(context)
     local mission_key = context:mission():mission_record_key();
-    if mission_key ~= alith_anar_mission_key then
+    if mission_key ~= alith_anar_mission_key and mission_key ~= alith_fight_mission_key then
         return;
     end
     -- mission should retrigger when the target recovers
@@ -297,7 +298,7 @@ end
 local function alith_anar_capture_end(context)
     local mission_key = context:mission():mission_record_key();
     -- allow both quest battle mission and on-campus kill mission to trigger this
-    if mission_key ~= alith_anar_mission_key or mission_key ~= alith_fight_mission_key then
+    if mission_key ~= alith_anar_mission_key and mission_key ~= alith_fight_mission_key then
         return;
     end
 
@@ -321,7 +322,7 @@ local function delayed_progression_check(context)
     cm:change_character_localised_name(alith_anar, "names_name_" .. li_mor.alith_anar.name_id, "", "", "");
 
     -- set him to wounded max turns until our training of him is complete
-    cm:wound_character("character_cqi:" .. alith_anar:cqi(), 999);
+    -- cm:wound_character("character_cqi:" .. alith_anar:cqi(), 999);
     -- NOTE use cm:stop_character_convalescing to instantly recover
 
     cm:set_saved_value(progression_finished_key, true);
