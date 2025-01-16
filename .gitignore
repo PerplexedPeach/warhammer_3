@@ -19,4 +19,5 @@ Backup
 *.png
 *.sublime-project
 **/.vscode
-**/*.xml
+!*.twui.xml
+temp
