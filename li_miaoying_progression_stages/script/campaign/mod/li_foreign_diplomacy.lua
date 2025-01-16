@@ -386,10 +386,10 @@ local function broadcast_self()
         if miao:faction():is_vassal_of(nkari:faction()) or (miao:faction():name() == nkari:faction():name()) then
             add_progression_trigger_as_subject();
         end
-        -- enable dipomacy with Slaanesh when Miao's sufficiently corrupted
-        li_miao:persistent_initialization_register(1, enable_diplomacy, "enable diplomacy with all major corrupting forces");
     end
     if miao ~= nil then
+        -- enable dipomacy with Slaanesh when Miao's sufficiently corrupted
+        li_miao:persistent_initialization_register(1, enable_diplomacy, "enable diplomacy with all major corrupting forces");
         li_miao:persistent_initialization_register(1, persistent_diplomacy_bonus, "diplomatic bonus until positive");
     end
 end
