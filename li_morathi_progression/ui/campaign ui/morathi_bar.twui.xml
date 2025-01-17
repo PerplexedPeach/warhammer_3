@@ -1317,7 +1317,7 @@
 					this="7F7E8030-7089-16B7-07538C36F11448B8"
 					uniqueguid="7F7E8030-7089-16B7-07538C36F11448B8"
 					imagepath="ui/skins/warhammer2/malus_possession_bar_filling_glow_mid.png"/>
-			</componentimages>
+		</componentimages>
 			<states>
 				<active
 					this="307BE251-09BC-512F-1871531B8551E333"
@@ -1463,7 +1463,7 @@
 				<component_image
 					this="F1938E43-F12A-D066-3FC063615E996BA5"
 					uniqueguid="F1938E43-F12A-D066-3FC063615E996BA5"
-					imagepath="ui/skins/warhammer2/malus_possession_bar_golden_frame_icon_state1.png"/>
+					imagepath="ui/skins/default/morathi_bar_golden_frame_icon_state1.png"/>
 				<component_image
 					this="BDB3CB5E-2AF3-08A4-3BBED8B3305B5D62"
 					uniqueguid="BDB3CB5E-2AF3-08A4-3BBED8B3305B5D62"
@@ -1635,7 +1635,7 @@
 				<component_image
 					this="BA1D8946-0F13-DE3D-33C17BD78211FA28"
 					uniqueguid="BA1D8946-0F13-DE3D-33C17BD78211FA28"
-					imagepath="ui/skins/warhammer2/malus_possession_bar_golden_frame_icon_state1.png"/>
+					imagepath="ui/skins/default/morathi_bar_golden_frame_icon_state1.png"/>
 				<component_image
 					this="90607D4A-7C89-6C13-15552CBF29E5C2B2"
 					uniqueguid="90607D4A-7C89-6C13-15552CBF29E5C2B2"
@@ -1807,7 +1807,7 @@
 				<component_image
 					this="4777B02D-1801-C285-CEC19AE8AFE79EF9"
 					uniqueguid="4777B02D-1801-C285-CEC19AE8AFE79EF9"
-					imagepath="ui/skins/warhammer2/malus_possession_bar_golden_frame_icon_state2.png"/>
+					imagepath="ui/skins/default/morathi_bar_golden_frame_icon_state2.png"/>
 				<component_image
 					this="877FFE4B-8031-E169-01D20EEFB315B77E"
 					uniqueguid="877FFE4B-8031-E169-01D20EEFB315B77E"
@@ -1985,7 +1985,7 @@
 				<component_image
 					this="2088FF44-B325-A7E8-639CCAE697301BBE"
 					uniqueguid="2088FF44-B325-A7E8-639CCAE697301BBE"
-					imagepath="ui/skins/warhammer2/malus_possession_bar_golden_frame_icon_state1.png"/>
+					imagepath="ui/skins/default/morathi_bar_golden_frame_icon_state1.png"/>
 				<component_image
 					this="FE13AD8E-16D7-F5A5-2825A015A8E65969"
 					uniqueguid="FE13AD8E-16D7-F5A5-2825A015A8E65969"
@@ -2164,7 +2164,7 @@
 				<component_image
 					this="BE4B6CD0-79BA-01A8-8EF0881A57F14BBB"
 					uniqueguid="BE4B6CD0-79BA-01A8-8EF0881A57F14BBB"
-					imagepath="ui/skins/warhammer2/malus_possession_bar_golden_frame_icon_state1.png"/>
+					imagepath="ui/skins/default/morathi_bar_golden_frame_icon_state1.png"/>
 				<component_image
 					this="19125EF6-53A2-1CD9-C6475D39CBE24019"
 					uniqueguid="19125EF6-53A2-1CD9-C6475D39CBE24019"
@@ -2343,7 +2343,7 @@
 				<component_image
 					this="D939B9B4-FC50-4720-0DCA6021FE10F4F1"
 					uniqueguid="D939B9B4-FC50-4720-0DCA6021FE10F4F1"
-					imagepath="ui/skins/warhammer2/malus_possession_bar_golden_frame_icon_state3_negative.png"/>
+					imagepath="ui/skins/default/morathi_bar_golden_frame_icon_state3_negative.png"/>
 				<component_image
 					this="955EF782-C6FF-DFDE-F60E2071A53BAFCE"
 					uniqueguid="955EF782-C6FF-DFDE-F60E2071A53BAFCE"
