@@ -117,21 +117,7 @@ local function give_birth(bred_tier, choice)
     end
 end
 
-local function check_birth(context)
-    local character = li_miao:get_char();
-    if character == nil or context:faction():name() ~= character:faction():name() then
-        return
-    end
-
-    if not cm:get_saved_value(pregnancy_name) then
-        return
-    end
-
-    local impregnated_turn = cm:get_saved_value(pregnancy_turn) or 0;
-    if cm:turn_number() < impregnated_turn + pregnancy_period then
-        return
-    end
-
+local function do_give_birth(character)
     local bred_times = character:trait_points(broodmother_trait_name) + 1;
     local bred_tier = birth_tier_for_num_times(bred_times);
 
@@ -164,6 +150,25 @@ local function check_birth(context)
     end
 end
 
+local function check_birth(context)
+    local character = li_miao:get_char();
+    if character == nil or context:faction():name() ~= character:faction():name() then
+        return
+    end
+
+    if not cm:get_saved_value(pregnancy_name) then
+        return
+    end
+
+    local impregnated_turn = cm:get_saved_value(pregnancy_turn) or 0;
+    if cm:turn_number() < impregnated_turn + pregnancy_period then
+        return
+    end
+
+    do_give_birth(character);
+end
+
+
 local function get_bred_callback(context)
     local pb = cm:model():pending_battle();
     local miao_attacker, miao_defender = li_miao:attacker_or_defender();
@@ -192,6 +197,14 @@ end
 
 function Test_get_bred(dad_name)
     get_bred(dad_name)
+end
+
+function li_miao:give_birth()
+    local character = self:get_char();
+    if character == nil then
+        return
+    end
+    do_give_birth(character);
 end
 
 function Attach_miao_chains()
