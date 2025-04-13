@@ -252,13 +252,13 @@ local function do_alith_anar_capture_end()
     -- remove Alith Anar from his faction
     cm:set_saved_value(alith_anar_mission_finished_key, true);
     --spawn this force as a guard against the player killing Alith Anar and occupying his last settlement at the same time. kill them with notice supressed after confederation
-    local cqi_generated = nil;
-    cm:create_force_with_general("wh2_main_hef_nagarythe", "", "wh3_main_combi_region_hag_graef", 74, 590, "general",
-        "wh2_main_def_dreadlord_fem", "names_name_2147359620", "", "", "", true,
-        function(cqi)
-            cqi_generated = cqi;
-        end
-    );
+    -- local cqi_generated = nil;
+    -- cm:create_force_with_general("wh2_main_hef_nagarythe", "", "wh3_main_combi_region_hag_graef", 74, 590, "general",
+    --     "wh2_main_def_dreadlord_fem", "names_name_2147359620", "", "", "", true,
+    --     function(cqi)
+    --         cqi_generated = cqi;
+    --     end
+    -- );
 
     -- find faction to transfer to
     local faction_to_transfer = nil;
@@ -292,7 +292,7 @@ local function do_alith_anar_capture_end()
     -- confederate
     li_mor:clear_faction_character_stance(alith_anar:faction());
     cm:force_confederation(mor:faction():name(), alith_anar:faction():name());
-    li_mor:delayed_kill_cqi(cqi_generated, 15);
+    -- li_mor:delayed_kill_cqi(cqi_generated, 15);
 end
 
 local function alith_anar_capture_end(context)
