@@ -7,6 +7,9 @@ function Mod_log(text)
     end
 end
 
+local progress_effect_bundle = "li_progress";
+local progress_effect = "li_effect_progress";
+
 function Is_character_attacker_or_defender(pending_battle, subtype_key)
     -- local pb = cm:model():pending_battle();
     local pb = pending_battle;
@@ -360,6 +363,8 @@ function LiProgression:initialize()
             self:call_persistent_callback_factory(stage);
         end
         self:set_stage(current_stage);
+        -- also set progress to update
+        self:set_progress_percent(self:get_progress_percent());
     end, 1.3, "Li_" .. self.shortname .. "_initialize");
 
     -- add callback at start of turn to check if progress is 100%; sometimes we reach 100% but are blocked
@@ -432,6 +437,7 @@ function LiProgression:set_progress_percent(percent)
     end
     self:log("Set progress percent " .. tostring(percent));
     cm:set_saved_value(self.progress_percent_name, percent);
+    self:_update_progress_effects();
     -- check for progression
     if percent == 100 then
         local is_human = self:get_char():faction():is_human();
@@ -451,6 +457,21 @@ function LiProgression:modify_progress_percent(percent, cause)
     end
     self:log("Change progress percent " .. tostring(current_percent) .. " to " .. tostring(new_percent) .. " cause " .. tostring(cause));
     self:set_progress_percent(new_percent);
+end
+
+function LiProgression:_update_progress_effects()
+    local char = self:get_char();
+    if char == nil then
+        return;
+    end
+    local progress = self:get_progress_percent();
+
+    cm:remove_effect_bundle_from_character(progress_effect_bundle, char);
+
+    local bundle = cm:create_new_custom_effect_bundle(progress_effect_bundle);
+    bundle:add_effect(progress_effect, "character_to_character_own", progress);
+    bundle:set_duration(0);
+    cm:apply_custom_effect_bundle_to_character(bundle, char);
 end
 
 function LiProgression:trigger_progression(context, is_human)
