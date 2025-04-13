@@ -8,39 +8,21 @@ function Mod_log(text)
 end
 
 function Is_character_attacker_or_defender(pending_battle, subtype_key)
-    local is_attacker = false
-    local is_defender = false
-	local attacker = pending_battle:attacker()
-	local defender = pending_battle:defender()
-	local secondary_attackers = pending_battle:secondary_attackers()
-	local secondary_defenders = pending_battle:secondary_defenders()
-
-    if attacker:character_subtype_key() == subtype_key then
-        is_attacker = true
+    -- local pb = cm:model():pending_battle();
+    local pb = pending_battle;
+    if not pb:has_been_fought() then
+        return false, false;
     end
-
-    if defender:character_subtype_key() == subtype_key then
-        is_defender = true
+    local main = Get_character_full(subtype_key);
+    local involved = cm:pending_battle_cache_char_is_involved(main);
+    if not involved then
+        return false, false;
     end
-
-    for i = 0, secondary_attackers:num_items() - 1 do
-        attacker = secondary_attackers:item_at(i);
-
-        if attacker:character_subtype_key() == subtype_key then
-            is_attacker = true
-        end
+    if cm:pending_battle_cache_char_is_defender(main) then
+        return false, true;
+    else
+        return true, false;
     end
-
-    for i = 0, secondary_defenders:num_items() - 1 do
-        defender = secondary_defenders:item_at(i);
-
-        if defender:character_subtype_key() == subtype_key then
-            is_defender = true
-        end
-    end
-
-
-    return is_attacker, is_defender
 end
 
 
@@ -157,7 +139,7 @@ function LiProgression:persistent_initialization_register(stage, callback, name)
     end
 end
 
-function LiProgression:find_subtype_in_faction(faction, subtype)
+function Find_subtype_in_faction(faction, subtype)
     if faction == nil or faction == false or faction:is_null_interface() then
         return nil;
     end
@@ -171,8 +153,14 @@ function LiProgression:find_subtype_in_faction(faction, subtype)
     return nil;
 end
 
+
+function LiProgression:find_subtype_in_faction(faction, subtype)
+    return Find_subtype_in_faction(faction, subtype);
+end
+
+
 function LiProgression:get_character_all(subtype, factions_to_consider)
-    faction_list = cm:get_human_factions();
+    local faction_list = cm:get_human_factions();
     for i = 1, #faction_list do
         local char = self:find_subtype_in_faction(cm:get_faction(faction_list[i]), subtype);
         if char then
@@ -217,6 +205,42 @@ end
 function LiProgression:get_char()
     return self:get_character_faction_leader(self.main_subtype, self.main_faction, self.confed_factions);
 end
+
+function Is_character_in_faction_factory(subtype)
+    return function(faction)
+        -- return cm:num_characters_of_type_in_faction(faction, subtype) > 0;
+        return cm:faction_contains_characters_of_type(faction, subtype);
+    end
+end
+
+local function stub_faction_callback(faction)
+    return true;
+end
+function Get_all_factions()
+    return cm:get_factions_by_filter(stub_faction_callback);
+end
+
+function Get_character_full(subtype)
+    -- first look at all human factions
+    local faction_list = cm:get_human_factions();
+
+    for i = 1, #faction_list do
+        local char = Find_subtype_in_faction(cm:get_faction(faction_list[i]), subtype);
+        if char then
+            return char;
+        end
+    end
+    -- actually look at all characters
+    faction_list = Get_all_factions();
+    for i = 1, #faction_list do
+        local char = Find_subtype_in_faction(faction_list[i], subtype);
+        if char ~= nil and char:character_subtype(subtype) then
+            return char;
+        end
+    end
+    return nil;
+end
+
 
 function LiProgression:get_art_set_name(stage)
     local stage_name = self.REGISTERED_STAGES[stage];
