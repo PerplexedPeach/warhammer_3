@@ -6,8 +6,6 @@ local consecutive_loss_to_nkari_name = "li_miaoying_consec_loss_nkari";
 local nkari_subtype = "wh3_main_sla_nkari";
 
 local enable_diplomacy_for_cultures = { ["wh3_main_sla_slaanesh"] = true, ["wh_main_chs_chaos"] = true };
-local miao_diplomacy_points = "li_miao_diplomacy_points";
-local points_required_for_progression = 20;
 
 local function trait_name_for_stage(stage)
     if stage < 4 then
@@ -286,7 +284,6 @@ local function add_progression_trigger_with_diplomacy()
                 return
             end
             -- check if we have any diplomatic relations with the diplomatic daemon factions
-            local cur_points = cm:get_saved_value(miao_diplomacy_points) or 0;
             -- loop over all relevant factions; max of 1 applied for each option
             local to_add = 0;
             if check_if_faction_list_contains_cultures(miao:faction():factions_non_aggression_pact_with(),
@@ -313,16 +310,8 @@ local function add_progression_trigger_with_diplomacy()
                 end
             end
 
-            li_miao:log("last turn diplomacy point " ..
-                cur_points .. " to add " .. to_add .. " required for progression: " .. points_required_for_progression);
-            cm:set_saved_value(miao_diplomacy_points, cur_points + to_add);
-            if cur_points + to_add >= points_required_for_progression then
-                local progressed = li_miao:trigger_progression(context, miao:faction():is_human());
-                -- save diplomacy points so that a fail-to-fire due to cooldown doesn't reset our points
-                if progressed then
-                    cm:set_saved_value(miao_diplomacy_points, 0);
-                end
-            end
+            -- each diplomacy point is worth 5% progression 
+            li_miao:modify_progress_percent(to_add * 5, "diplomacy");
         end,
         true);
 end

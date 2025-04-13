@@ -60,6 +60,8 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     self.unlocked_art_sets = { self.main_art_set };
 
     self.stored_stage_name = "li_" .. main_shortname .. "_current_stage";
+    -- progress percent between 0 and 100
+    self.progress_percent_name = "li_" .. main_shortname .. "_progress_percent";
     self.last_progression_turn_name = "li_" .. main_shortname .. "_last_progression";
     self.refractory_period = 3;
     self.last_submod_event_turn_name = "li_" .. main_shortname .. "_last_submod_event";
@@ -359,6 +361,26 @@ function LiProgression:initialize()
         end
         self:set_stage(current_stage);
     end, 1.3, "Li_" .. self.shortname .. "_initialize");
+
+    -- add callback at start of turn to check if progress is 100%; sometimes we reach 100% but are blocked
+    core:add_listener(
+        "FactionTurnStartProgressCheck" .. self.shortname,
+        "FactionTurnStart",
+        true,
+        function (context) 
+            local faction = context:faction();
+            local char = self:get_char();
+            if char == nil or faction == nil or faction:is_null_interface() or faction:name() ~= char:faction():name() then
+                return false;
+            end
+            local progress_percent = self:get_progress_percent();
+            self:log("Start of turn check progress percent " .. tostring(progress_percent));
+            if progress_percent >= 100 then
+                self:_call_progression_callback(context, faction:is_human());
+            end
+        end,
+        true
+    );
 end
 
 function LiProgression:progression_cooldown_base()
@@ -393,14 +415,56 @@ function LiProgression:fire_submod_event(event_name)
     cm:set_saved_value(self.last_submod_event_turn_name, cm:turn_number());
 end
 
+function LiProgression:get_progress_percent()
+    -- get the current corruption stage
+    local progress_percent = cm:get_saved_value(self.progress_percent_name);
+    if progress_percent == nil then
+        progress_percent = 0;
+    end
+    return progress_percent;
+end
+
+function LiProgression:set_progress_percent(percent)
+    -- set the current corruption stage
+    if percent < 0 or percent > 100 then
+        self:error("Attempt to set progress percent to " .. tostring(percent) .. " out of bounds");
+        return;
+    end
+    self:log("Set progress percent " .. tostring(percent));
+    cm:set_saved_value(self.progress_percent_name, percent);
+    -- check for progression
+    if percent == 100 then
+        local is_human = self:get_char():faction():is_human();
+        self:_call_progression_callback(nil, is_human);
+    end
+end
+
+function LiProgression:modify_progress_percent(percent, cause)
+    -- optional cause for debugging
+    local current_percent = self:get_progress_percent();
+    local new_percent = current_percent + percent;
+    -- clamp to 0-100
+    if new_percent < 0 then
+        new_percent = 0;
+    elseif new_percent > 100 then
+        new_percent = 100;
+    end
+    self:log("Change progress percent " .. tostring(current_percent) .. " to " .. tostring(new_percent) .. " cause " .. tostring(cause));
+    self:set_progress_percent(new_percent);
+end
+
 function LiProgression:trigger_progression(context, is_human)
+    return self:set_progress_percent(100);
+end
+
+function LiProgression:_call_progression_callback(context, is_human)
     -- The corruptee needs some turns to settle into her new life before progressing down the corruption
     if self:progression_cooldown_left() > 0 then
         self:log("Too close to last corruption progression event on turn " ..
             cm:get_saved_value(self.last_progression_turn_name))
         return false;
     end
-    self:log("Triggering progression, looking for next stage");
+    self:log("Progress reached 100, looking for next stage");
     local callback, next_stage = self:get_next_stage_callback();
     if callback ~= nil then
         self:log("Progression callback for stage " .. tostring(next_stage));
@@ -416,6 +480,8 @@ end
 
 function LiProgression:advance_stage(trait_name, next_stage)
     cm:force_add_trait("character_cqi:" .. self:get_char():cqi(), trait_name, 1);
+    -- clear progress upon entering stage 
+    self:set_progress_percent(0);
     self:set_stage(next_stage);
     self:fire_corrupt_event("accept", next_stage);
 end
