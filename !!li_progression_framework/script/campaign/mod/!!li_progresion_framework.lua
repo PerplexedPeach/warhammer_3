@@ -1,12 +1,3 @@
-function Mod_log(text)
-    -- TODO don't always flush to file
-    if type(text) == "string" then
-        local file = io.open("li_log.txt", "a")
-        file:write(tostring(cm:turn_number()) .. " " .. text .. "\n")
-        file:close()
-    end
-end
-
 local progress_effect_bundle = "li_progress";
 local progress_effect = "li_effect_progress";
 
@@ -27,7 +18,6 @@ function Is_character_attacker_or_defender(pending_battle, subtype_key)
         return true, false;
     end
 end
-
 
 ---@class LiProgression
 LiProgression = {};
@@ -61,6 +51,8 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     self.names_name_id_prefix = names_name_id_prefix;
     -- for variant selector; assumes that main_art_set is for the base art set
     self.unlocked_art_sets = { self.main_art_set };
+    -- for dilemmas
+    self.dilemma_queue = LiQueue:new("li_" .. main_shortname .. "_dilemma_queue");
 
     self.stored_stage_name = "li_" .. main_shortname .. "_current_stage";
     -- progress percent between 0 and 100
@@ -158,11 +150,9 @@ function Find_subtype_in_faction(faction, subtype)
     return nil;
 end
 
-
 function LiProgression:find_subtype_in_faction(faction, subtype)
     return Find_subtype_in_faction(faction, subtype);
 end
-
 
 function LiProgression:get_character_all(subtype, factions_to_consider)
     local faction_list = cm:get_human_factions();
@@ -245,7 +235,6 @@ function Get_character_full(subtype)
     end
     return nil;
 end
-
 
 function LiProgression:get_art_set_name(stage)
     local stage_name = self.REGISTERED_STAGES[stage];
@@ -366,18 +355,28 @@ function LiProgression:initialize()
         -- also set progress to update
         self:set_progress_percent(self:get_progress_percent());
     end, 1.3, "Li_" .. self.shortname .. "_initialize");
+    -- reload dilemma queue
+    self.dilemma_queue:load();
 
     -- add callback at start of turn to check if progress is 100%; sometimes we reach 100% but are blocked
     core:add_listener(
         "FactionTurnStartProgressCheck" .. self.shortname,
         "FactionTurnStart",
         true,
-        function (context) 
+        function(context)
             local faction = context:faction();
             local char = self:get_char();
             if char == nil or faction == nil or faction:is_null_interface() or faction:name() ~= char:faction():name() then
                 return false;
             end
+
+            -- process dilemma queue
+            local entry = self.dilemma_queue:process_turn();
+            if entry ~= nil then
+                self:log("Fired queued dilemma " .. entry.dilemma .. " for faction " .. entry.faction_name);
+            end
+
+            -- check if we need to stage up
             local progress_percent = self:get_progress_percent();
             self:log("Start of turn check progress percent " .. tostring(progress_percent));
             if progress_percent >= 100 then
@@ -386,6 +385,24 @@ function LiProgression:initialize()
         end,
         true
     );
+end
+
+---Push a dilemma to the queue with a specified delay
+---@param dilemma string Dilemma key in database to trigger
+---@param delay number|nil Delay in turns before the dilemma is triggered; if nil, will use 0
+---@param faction_name string|nil Faction name to trigger the dilemma for; if nil, will use the main character's faction
+function LiProgression:queue_dilemma(dilemma, delay, faction_name)
+    delay = delay or 0;
+    faction_name = faction_name or self:get_char():faction():name();
+    -- check if the dilemma is already in the queue
+    local turns_until = self.dilemma_queue:turns_until(dilemma);
+    if turns_until > 0 then
+        self:log("Dilemma " .. dilemma .. " already in queue with delay " .. tostring(turns_until));
+        return;
+    else
+        self:log("Pushing dilemma " .. dilemma .. " to queue with delay " .. tostring(delay));
+        self.dilemma_queue:push(dilemma, delay, faction_name);
+    end
 end
 
 function LiProgression:progression_cooldown_base()
@@ -455,7 +472,8 @@ function LiProgression:modify_progress_percent(percent, cause)
     elseif new_percent > 100 then
         new_percent = 100;
     end
-    self:log("Change progress percent " .. tostring(current_percent) .. " to " .. tostring(new_percent) .. " cause " .. tostring(cause));
+    self:log("Change progress percent " ..
+        tostring(current_percent) .. " to " .. tostring(new_percent) .. " cause " .. tostring(cause));
     self:set_progress_percent(new_percent);
 end
 
@@ -501,7 +519,7 @@ end
 
 function LiProgression:advance_stage(trait_name, next_stage)
     cm:force_add_trait("character_cqi:" .. self:get_char():cqi(), trait_name, 1);
-    -- clear progress upon entering stage 
+    -- clear progress upon entering stage
     self:set_progress_percent(0);
     self:set_stage(next_stage);
     self:fire_corrupt_event("accept", next_stage);
@@ -553,7 +571,7 @@ end
 function LiProgression:respawn_faction(start_region, faction_name, unit_list)
     local faction = cm:get_faction(faction_name);
     local x, y = cm:find_valid_spawn_location_for_character_from_settlement(faction_name, start_region, false, true, 9);
-    cm:create_force_with_general(--create_force_with_general is used because create_force sometimes stops working
+    cm:create_force_with_general( --create_force_with_general is used because create_force sometimes stops working
         faction_name,
         unit_list,
         start_region,
