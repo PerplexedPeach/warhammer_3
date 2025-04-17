@@ -1,4 +1,4 @@
-local version = "1.0.0";
+local version = "1.0.1";
 local printed_version = false;
 
 
@@ -528,9 +528,12 @@ end
 
 function LiProgression:advance_stage(trait_name, next_stage)
     cm:force_add_trait("character_cqi:" .. self:get_char():cqi(), trait_name, 1);
+    local prev_stage = self:get_stage();
     -- clear progress upon entering stage
-    self:set_progress_percent(0);
-    self:set_stage(next_stage);
+    local new_stage = self:set_stage(next_stage);
+    if new_stage ~= prev_stage then
+        self:set_progress_percent(0);
+    end
     self:fire_corrupt_event("accept", next_stage);
 end
 
