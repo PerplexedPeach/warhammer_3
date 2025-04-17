@@ -1,4 +1,4 @@
-local version = "1.0.1";
+local version = "1.0.2";
 local printed_version = false;
 
 
@@ -240,7 +240,7 @@ function Get_character_full(subtype)
     return nil;
 end
 
-function LiProgression:get_art_set_name(stage)
+function LiProgression:_get_art_set_name(stage)
     local stage_name = self.REGISTERED_STAGES[stage];
     local art_set_name = self.main_art_set;
     if stage > 0 then
@@ -251,14 +251,14 @@ end
 
 function LiProgression:switch_art_set_stage(stage)
     -- change 3D model and 2D portraits
-    local art_set_name = self:get_art_set_name(stage);
+    local art_set_name = self:_get_art_set_name(stage);
     self:log(art_set_name);
     cm:add_character_model_override(self:get_char(), art_set_name);
-    self:unlock_art_set_stage(stage);
+    self:_unlock_art_set_stage(stage);
 end
 
-function LiProgression:unlock_art_set_stage(stage)
-    local art_set_name = self:get_art_set_name(stage);
+function LiProgression:_unlock_art_set_stage(stage)
+    local art_set_name = self:_get_art_set_name(stage);
     -- unlock this stage for the variant selector
     self.unlocked_art_sets[stage + 1] = art_set_name;
     local this_char = self:get_char();
@@ -279,7 +279,7 @@ function LiProgression:unlock_art_set_stage(stage)
     end
 end
 
-function LiProgression:call_persistent_callback_factory(stage)
+function LiProgression:_call_persistent_callback_factory(stage)
     local persistent_callbacks = self.PERSISTENT_CALLBACK[stage];
     local names = self.PERSISTENT_CALLBACK_NAMES[stage];
     if persistent_callbacks then
@@ -323,7 +323,7 @@ function LiProgression:set_stage(stage)
             end
         end
         cm:set_saved_value(self.stored_stage_name, stage);
-        self:call_persistent_callback_factory(stage);
+        self:_call_persistent_callback_factory(stage);
         return stage;
     else
         self:log("cannot switch to unregistered stage " .. tostring(stage));
@@ -356,9 +356,9 @@ function LiProgression:initialize()
     cm:callback(function()
         for stage = 1, current_stage - 1 do
             -- unlock the previous stage art sets to allow variant selector to switch between them
-            self:unlock_art_set_stage(stage);
+            self:_unlock_art_set_stage(stage);
             -- don't need to do <= since set stage will call the current stage's persistent callback factory
-            self:call_persistent_callback_factory(stage);
+            self:_call_persistent_callback_factory(stage);
         end
         self:set_stage(current_stage);
         -- also set progress to update
