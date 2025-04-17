@@ -1,3 +1,7 @@
+local version = "1.0.0";
+local printed_version = false;
+
+
 local progress_effect_bundle = "li_progress";
 local progress_effect = "li_effect_progress";
 
@@ -341,6 +345,11 @@ function LiProgression:get_next_stage_callback()
 end
 
 function LiProgression:initialize()
+    if not printed_version then
+        Mod_log("Corruption framework version " .. version);
+        printed_version = true;
+    end
+
     -- assumes load order is above others so we get loaded last and can see all the corruption stages
     local current_stage = self:get_stage();
     self:log("---- start " .. tostring(current_stage));
