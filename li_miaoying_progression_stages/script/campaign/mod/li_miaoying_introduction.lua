@@ -47,7 +47,13 @@ local function ai_corruption_chance_pulse(context)
         return;
     end
 
-    li_miao:modify_progress_percent(li_miao.settings.miao_ai_corruption_per_turn, "AI corruption pulse");
+    if miao:faction():is_human() then
+        if li_miao:get_stage() > 0 then
+            li_miao:modify_progress_percent(li_miao.settings.miao_human_corruption_per_turn, "human corruption pulse");
+        end
+    else
+        li_miao:modify_progress_percent(li_miao.settings.miao_ai_corruption_per_turn, "AI corruption pulse");
+    end
 end
 
 local function broadcast_self()

@@ -42,4 +42,9 @@ option:slider_set_step_size(1);
 option = cf:add_new_option("miao_ai_corruption_per_turn", "slider")
 option:set_default_value(10);
 option:slider_set_min_max(0, 30);
+option:slider_set_step_size(5);
+
+option = cf:add_new_option("miao_human_corruption_per_turn", "slider")
+option:set_default_value(5);
+option:slider_set_min_max(0, 30);
 option:slider_set_step_size(1);
