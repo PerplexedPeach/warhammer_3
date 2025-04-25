@@ -6,7 +6,6 @@ local daemonize_spawn = {
 };
 
 local daemonize_score = "li_katarin_daemonize_score";
-local second_tier_score_threshold = 4;
 local second_tier_daemonize_dilemma = "li_katarin_daemonize_tier_second";
 local d_faction_bundle_name = "li_effect_bundle_daemonize";
 local d_character_bundle_name = "li_effect_bundle_daemonize_character";
@@ -60,7 +59,7 @@ local function create_daemonize_effect_bundle()
         bundle:set_duration(0);
         bundlec:set_duration(0);
 
-        if score > second_tier_score_threshold then
+        if score > CFSettings.kat_daemonize_second_tier_threshold then
             if not cm:get_saved_value(second_tier_daemonize_dilemma) then
                 if faction:is_human() then
                     cm:trigger_dilemma(faction:name(), second_tier_daemonize_dilemma);
@@ -91,7 +90,7 @@ local function visit_major_kislev_city(context)
     -- daemonization score ticks down by 1 every turn
     local score = cm:get_saved_value(daemonize_score) or 0;
     if score > 0 then
-        score = score - 1;
+        score = score - CFSettings.kat_daemonize_decay_per_turn;
         cm:set_saved_value(daemonize_score, score);
         create_daemonize_effect_bundle();
     end

@@ -19,7 +19,6 @@ local city_to_dilemma = {
     ["wh3_main_chaos_region_erengrad"] = "li_katarin_stage_3_erengrad",
     ["cr_oldworld_region_erengrad"] = "li_katarin_stage_3_erengrad",
 };
-local events_to_progress = 3;
 local events_seen_name = "li_katarin_fourth_events_seen";
 
 local function visit_major_kislev_city(context)
@@ -35,8 +34,8 @@ local function visit_major_kislev_city(context)
     local events_seen = cm:get_saved_value(events_seen_name) or 0;
     -- for stage 2, we stage up upon losing to a Slaanesh force once we have all events
     -- fire dilemma informing the player that they are ready for the next step
-    if events_seen == events_to_progress then
-        li_kat:trigger_progression(context, li_kat:get_char():faction():is_human());
+    if events_seen == CFSettings.kat_events_to_progress_fourth then
+        li_kat:modify_progress_percent(100, "Finished events in Kislev cities");
         cm:set_saved_value(events_seen_name, events_seen + 1);
         return;
     end
@@ -57,7 +56,9 @@ local function visit_major_kislev_city(context)
 
     -- fire event and save progression
     li_kat:log("First time visiting major Kislev city to trigger event " .. event_name .. " " .. events_seen + 1 ..
-        " events needed out of " .. events_to_progress);
+        " events needed out of " .. CFSettings.kat_events_to_progress_fourth);
+    li_kat:modify_progress_percent(100 / CFSettings.kat_events_to_progress_fourth,
+        "Finished single event in Kislev city");
     if kat:faction():is_human() then
         cm:trigger_dilemma(kat:faction():name(), event_name);
     end

@@ -11,7 +11,6 @@ end
 -- hooks where each stage gets callback
 -- hook into losing combat against Slaanesh force (later events can check against )
 local heart_of_winter_ability_name = "wh3_main_spell_ice_heart_of_winter";
-local overexertion_used_times = 2;
 -- TODO consider making trigger chance scale with Katarin's level (character:rank()?)
 local ai_trigger_chance = 30;
 local function initial_amulet_offer_after_battle_listener(context)
@@ -36,11 +35,8 @@ local function initial_amulet_offer_after_battle_listener(context)
         local times_base = pb:get_how_many_times_ability_has_been_used_in_battle(faction_cqi, heart_of_winter_ability_name);
         local times_overcast = pb:get_how_many_times_ability_has_been_used_in_battle(faction_cqi, heart_of_winter_ability_name .. "_upgraded");
         local times_how = times_base + times_overcast;
-        li_kat:log("Times used heart of winter " .. tostring(times_how) .. " vs overexertion at " .. overexertion_used_times);
-
-        if times_how >= overexertion_used_times then
-            li_kat:trigger_progression(context, true);
-        end
+        li_kat:log("Times used heart of winter " .. tostring(times_how));
+        li_kat:modify_progress_percent(CFSettings.kat_heart_of_winter_corruption * times_how, "heart of winter in battle");
     else
         local rand = cm:random_number(100, 1);
         li_kat:log("AI rolled " .. tostring(rand) .. " against chance of being offered amulet " .. ai_trigger_chance)
