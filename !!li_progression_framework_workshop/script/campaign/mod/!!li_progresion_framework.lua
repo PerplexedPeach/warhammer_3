@@ -1,9 +1,64 @@
-local version = "1.0.2";
+local version = "1.1.0";
 local printed_version = false;
-
 
 local progress_effect_bundle = "li_progress";
 local progress_effect = "li_effect_progress";
+
+-- load settings and keep setting updated
+local mod_name = "li_cf";
+local settings = { };
+core:add_listener(
+    "ProgressionFrameworkSettingsInit",
+    "MctInitialized",
+    true,
+    function(context)
+        -- get the mct object
+        local mct = context:mct();
+        local my_mod = mct:get_mod_by_key(mod_name);
+
+        -- for some reason get_options doesn't work
+        local keys = {};
+        local option_types = {"checkbox", "slider", "dropdown"};
+        for i = 1, #option_types do
+            local option_type = option_types[i];
+            local this_keys = my_mod:get_option_keys_by_type(option_type);
+            for i = 1, #this_keys do
+                keys[#keys + 1] = this_keys[i];
+            end
+        end
+        
+        for i = 1, #keys do
+            local option = my_mod:get_option_by_key(keys[i]);
+            settings[keys[i]] = option:get_finalized_setting();
+        end
+        settings.mct = my_mod;
+    end,
+    true
+);
+
+core:add_listener(
+    "ProgressionFrameworkSettingsFinalized",
+    "MctOptionSettingFinalized",
+    true,
+    function(context)
+        local mct = context:mct();
+        local mct_mod = context:mod();
+        if mct_mod:get_key() ~= mod_name then
+            return false;
+        end
+        local mct_option = context:option();
+        settings[mct_option:get_key()] = context:setting();
+        settings.mct = mct_mod;
+
+        Mod_log("Settings finalized " .. mct_option:get_key() .. " " .. tostring(context:setting()));
+    end,
+    true
+);
+function Print_settings()
+    for k, v in pairs(settings) do
+        console_print(k .. " = " .. tostring(v));
+    end
+end
 
 function Is_character_attacker_or_defender(pending_battle, subtype_key)
     -- local pb = cm:model():pending_battle();
@@ -64,6 +119,7 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     self.last_progression_turn_name = "li_" .. main_shortname .. "_last_progression";
     self.refractory_period = 3;
     self.last_submod_event_turn_name = "li_" .. main_shortname .. "_last_submod_event";
+    self.settings = settings;
 
     return self;
 end
@@ -415,13 +471,13 @@ function LiProgression:queue_dilemma(dilemma, delay, faction_name)
 end
 
 function LiProgression:progression_cooldown_base()
-    return self.refractory_period;
+    return settings.progression_cooldown;
 end
 
 function LiProgression:progression_cooldown_left()
     -- Get number of turns before progression events can fire again; 0 means it's ready to fire
-    local last_progression_turn = cm:get_saved_value(self.last_progression_turn_name) or -self.refractory_period;
-    local turn_remaining = last_progression_turn - cm:turn_number() + self.refractory_period;
+    local last_progression_turn = cm:get_saved_value(self.last_progression_turn_name) or -settings.progression_cooldown;
+    local turn_remaining = last_progression_turn - cm:turn_number() + settings.progression_cooldown;
     if turn_remaining < 0 then
         turn_remaining = 0;
     end

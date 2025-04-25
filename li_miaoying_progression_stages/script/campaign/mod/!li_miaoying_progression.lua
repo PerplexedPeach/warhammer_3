@@ -47,12 +47,7 @@ core:add_listener(
         end
     end,
     function(context)
-        local pb = cm:model():pending_battle();
-        local is_attacker_human = (pb:attacker():cqi() == li_miao:get_char():cqi()) and
-            pb:attacker():faction():is_human();
-        local is_defender_human = (pb:defender():cqi() == li_miao:get_char():cqi()) and
-            pb:defender():faction():is_human();
-        li_miao:trigger_progression(context, is_attacker_human or is_defender_human);
+        li_miao:modify_progress_percent(li_miao.settings.miao_progress_battle, "battle");
     end,
     true
 );

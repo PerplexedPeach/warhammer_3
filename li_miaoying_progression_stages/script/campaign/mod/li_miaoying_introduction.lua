@@ -20,7 +20,7 @@ end
 local function introduction_mission_trigger(context)
     -- only fire once after turn 9
     local events_seen = cm:get_saved_value(mission_key);
-    if events_seen or cm:turn_number() < 10 then
+    if events_seen or cm:turn_number() < li_miao.settings.miao_intro_quest_turn then
         return;
     end
 
@@ -35,8 +35,8 @@ local function introduction_mission_trigger(context)
         li_miao:log("triggering introduction mission");
         cm:trigger_mission(miao:faction():name(), mission_key, true);
     else
-        li_miao:log("triggering AI progression instead of mission")
-        li_miao:trigger_progression(nil, false);
+        li_miao:log("triggering AI progression instead of mission");
+        li_miao:modify_progress_percent(100, "blade mission");
     end
 end
 
@@ -47,10 +47,7 @@ local function ai_corruption_chance_pulse(context)
         return;
     end
 
-    if cm:turn_number() % corruption_pulse_turns == 0 then
-        li_miao:log("triggering AI corruption pulse")
-        li_miao:trigger_progression(nil, false);
-    end
+    li_miao:modify_progress_percent(li_miao.settings.miao_ai_corruption_per_turn, "AI corruption pulse");
 end
 
 local function broadcast_self()
@@ -101,6 +98,8 @@ local function broadcast_self()
                 reveal_slaanesh_diplomacy();
                 core:remove_listener(mission_fight_listener_name);
                 cm:set_saved_value(mission_finished_key, true);
+                -- guarantee progress to stage
+                li_miao:modify_progress_percent(100, "finished introduction mission");
             end,
             true
         );

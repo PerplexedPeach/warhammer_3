@@ -288,15 +288,15 @@ local function add_progression_trigger_with_diplomacy()
             local to_add = 0;
             if check_if_faction_list_contains_cultures(miao:faction():factions_non_aggression_pact_with(),
                 enable_diplomacy_for_cultures, "NAP with ") then
-                to_add = to_add + 1;
+                to_add = to_add + li_miao.settings.miao_progress_nap;
             end
             if check_if_faction_list_contains_cultures(miao:faction():factions_trading_with(),
                 enable_diplomacy_for_cultures, "trading with ") then
-                to_add = to_add + 1;
+                to_add = to_add + li_miao.settings.miao_progress_trade;
             end
             if check_if_faction_list_contains_cultures(miao:faction():factions_allied_with(),
                 enable_diplomacy_for_cultures, "allied with ") then
-                to_add = to_add + 2;
+                to_add = to_add + li_miao.settings.miao_progress_ally;
             end
 
             local l = miao:faction():factions_met();
@@ -304,14 +304,14 @@ local function add_progression_trigger_with_diplomacy()
                 local faction = l:item_at(i);
                 if enable_diplomacy_for_cultures[faction:culture()] and
                     (faction:is_vassal_of(miao:faction()) or miao:faction():is_vassal_of(faction)) then
-                    to_add = to_add + 3;
+                    to_add = to_add + li_miao.settings.miao_progress_vassal;
                     li_miao:log("vassal relationship with " .. faction:name());
                     break
                 end
             end
 
             -- each diplomacy point is worth 5% progression 
-            li_miao:modify_progress_percent(to_add * 5, "diplomacy");
+            li_miao:modify_progress_percent(to_add, "diplomacy");
         end,
         true);
 end
