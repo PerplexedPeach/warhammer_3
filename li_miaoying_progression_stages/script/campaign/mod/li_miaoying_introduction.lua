@@ -3,7 +3,6 @@ local mission_key = "li_miao_corruption_introduction";
 local mission_finished_key = mission_key .. "_finished";
 local set_piece_battle_key = "li_miao_corruption_introduction";
 local mission_fight_listener_name = "Li_Starting_Battle_Listener";
-local corruption_pulse_turns = 10;
 
 local function reveal_slaanesh_diplomacy()
     local miao = li_miao:get_char();
@@ -20,7 +19,7 @@ end
 local function introduction_mission_trigger(context)
     -- only fire once after turn 9
     local events_seen = cm:get_saved_value(mission_key);
-    if events_seen or cm:turn_number() < li_miao.settings.miao_intro_quest_turn then
+    if events_seen or cm:turn_number() < CFSettings.miao_intro_quest_turn then
         return;
     end
 
@@ -49,10 +48,10 @@ local function ai_corruption_chance_pulse(context)
 
     if miao:faction():is_human() then
         if li_miao:get_stage() > 0 then
-            li_miao:modify_progress_percent(li_miao.settings.miao_human_corruption_per_turn, "human corruption pulse");
+            li_miao:modify_progress_percent(CFSettings.miao_human_corruption_per_turn, "human corruption pulse");
         end
     else
-        li_miao:modify_progress_percent(li_miao.settings.miao_ai_corruption_per_turn, "AI corruption pulse");
+        li_miao:modify_progress_percent(CFSettings.miao_ai_corruption_per_turn, "AI corruption pulse");
     end
 end
 

@@ -47,7 +47,7 @@ core:add_listener(
         end
     end,
     function(context)
-        li_miao:modify_progress_percent(li_miao.settings.miao_progress_battle, "battle");
+        li_miao:modify_progress_percent(CFSettings.miao_progress_battle, "battle");
     end,
     true
 );

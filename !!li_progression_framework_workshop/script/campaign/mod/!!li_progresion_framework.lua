@@ -6,7 +6,7 @@ local progress_effect = "li_effect_progress";
 
 -- load settings and keep setting updated
 local mod_name = "li_cf";
-local settings = { };
+CFSettings = { };
 core:add_listener(
     "ProgressionFrameworkSettingsInit",
     "MctInitialized",
@@ -29,9 +29,9 @@ core:add_listener(
         
         for i = 1, #keys do
             local option = my_mod:get_option_by_key(keys[i]);
-            settings[keys[i]] = option:get_finalized_setting();
+            CFSettings[keys[i]] = option:get_finalized_setting();
         end
-        settings.mct = my_mod;
+        CFSettings.mct = my_mod;
     end,
     true
 );
@@ -47,15 +47,15 @@ core:add_listener(
             return false;
         end
         local mct_option = context:option();
-        settings[mct_option:get_key()] = context:setting();
-        settings.mct = mct_mod;
+        CFSettings[mct_option:get_key()] = context:setting();
+        CFSettings.mct = mct_mod;
 
         Mod_log("Settings finalized " .. mct_option:get_key() .. " " .. tostring(context:setting()));
     end,
     true
 );
 function Print_settings()
-    for k, v in pairs(settings) do
+    for k, v in pairs(CFSettings) do
         console_print(k .. " = " .. tostring(v));
     end
 end
@@ -119,7 +119,6 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     self.last_progression_turn_name = "li_" .. main_shortname .. "_last_progression";
     self.refractory_period = 3;
     self.last_submod_event_turn_name = "li_" .. main_shortname .. "_last_submod_event";
-    self.settings = settings;
 
     return self;
 end
@@ -471,13 +470,13 @@ function LiProgression:queue_dilemma(dilemma, delay, faction_name)
 end
 
 function LiProgression:progression_cooldown_base()
-    return settings.progression_cooldown;
+    return CFSettings.progression_cooldown;
 end
 
 function LiProgression:progression_cooldown_left()
     -- Get number of turns before progression events can fire again; 0 means it's ready to fire
-    local last_progression_turn = cm:get_saved_value(self.last_progression_turn_name) or -settings.progression_cooldown;
-    local turn_remaining = last_progression_turn - cm:turn_number() + settings.progression_cooldown;
+    local last_progression_turn = cm:get_saved_value(self.last_progression_turn_name) or -CFSettings.progression_cooldown;
+    local turn_remaining = last_progression_turn - cm:turn_number() + CFSettings.progression_cooldown;
     if turn_remaining < 0 then
         turn_remaining = 0;
     end
