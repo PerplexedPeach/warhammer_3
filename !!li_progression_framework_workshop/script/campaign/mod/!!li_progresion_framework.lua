@@ -6,7 +6,7 @@ local progress_effect = "li_effect_progress";
 
 -- load settings and keep setting updated
 local mod_name = "li_cf";
-CFSettings = { };
+CFSettings = {};
 core:add_listener(
     "ProgressionFrameworkSettingsInit",
     "MctInitialized",
@@ -18,7 +18,7 @@ core:add_listener(
 
         -- for some reason get_options doesn't work
         local keys = {};
-        local option_types = {"checkbox", "slider", "dropdown"};
+        local option_types = { "checkbox", "slider", "dropdown" };
         for i = 1, #option_types do
             local option_type = option_types[i];
             local this_keys = my_mod:get_option_keys_by_type(option_type);
@@ -26,7 +26,7 @@ core:add_listener(
                 keys[#keys + 1] = this_keys[i];
             end
         end
-        
+
         for i = 1, #keys do
             local option = my_mod:get_option_by_key(keys[i]);
             CFSettings[keys[i]] = option:get_finalized_setting();
@@ -96,9 +96,7 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     })
     self.REGISTERED_STAGES = { [0] = "" };
     self.PROGRESSION_CALLBACK = { [0] = nil }
-    -- TODO also deprecate persistent callbacks (replace with listener on enter and init with that stage)
-    self.PERSISTENT_CALLBACK = {};
-    self.PERSISTENT_CALLBACK_NAMES = {};
+
 
     self.shortname = main_shortname;
     self.main_faction = main_faction;
@@ -150,7 +148,8 @@ function LiProgression:stage_register(name, stage, callback_for_progression, cal
     self.REGISTERED_STAGES[stage] = name;
     self.PROGRESSION_CALLBACK[stage] = callback_for_progression;
     if callback_on_entering ~= nil then
-        self:log("Registering entering callbacks is deprecated! Use a listener for " .. self.main_event .. " with type 'enter' instead");
+        self:log("Registering entering callbacks is deprecated! Use a listener for " ..
+            self.main_event .. " with type 'enter' instead");
     end
 end
 
@@ -159,26 +158,8 @@ end
 ---@param callback function
 ---@param name any|nil
 function LiProgression:persistent_initialization_register(stage, callback, name)
-    -- put registration of stage-specific persistent callbacks inside it
-    -- at initialization, all stages up to and including the current one will be called
-    -- needed for proper loading
-    if name == nil then
-        name = tostring(callback);
-    end
-    self:log("Registering persistent factories for stage " .. tostring(stage) .. " " .. tostring(name));
-    if not is_number(stage) then
-        self:log("Rejecting registration of invalid stage");
-        return
-    end
-    if self.PERSISTENT_CALLBACK[stage] then
-        local callbacks = self.PERSISTENT_CALLBACK[stage];
-        callbacks[#callbacks + 1] = callback;
-        local names = self.PERSISTENT_CALLBACK_NAMES[stage];
-        names[#callbacks + 1] = name;
-    else
-        self.PERSISTENT_CALLBACK[stage] = { callback };
-        self.PERSISTENT_CALLBACK_NAMES[stage] = { name };
-    end
+    self:log("Registering persistent initializations is deprecated! Use a listener for " ..
+        self.main_event .. " with type 'enter' or 'init' instead (remember to make it non-persistent)");
 end
 
 function Find_subtype_in_faction(faction, subtype)
@@ -320,17 +301,6 @@ function LiProgression:_unlock_art_set_stage(stage)
     end
 end
 
-function LiProgression:_call_persistent_callback_factory(stage)
-    local persistent_callbacks = self.PERSISTENT_CALLBACK[stage];
-    local names = self.PERSISTENT_CALLBACK_NAMES[stage];
-    if persistent_callbacks then
-        for i = 1, #persistent_callbacks do
-            self:log("Calling persistent callback for stage " .. tostring(stage) .. " " .. tostring(names[i]));
-            persistent_callbacks[i](stage);
-        end
-    end
-end
-
 function LiProgression:change_title(stage, override_id)
     if not is_number(stage) then
         self:log("Rejecting attempt to change to string stage " .. stage);
@@ -358,8 +328,6 @@ function LiProgression:set_stage(stage)
         self:log("Set stage " .. tostring(stage));
         self:switch_art_set_stage(stage);
         cm:set_saved_value(self.stored_stage_name, stage);
-        -- TODO remove persistent callbacks and use listeners instead
-        self:_call_persistent_callback_factory(stage);
         return stage;
     else
         self:log("cannot switch to unregistered stage " .. tostring(stage));
@@ -403,7 +371,7 @@ function LiProgression:initialize()
     -- reload dilemma queue
     self.dilemma_queue:load();
 
-    self:fire_event({type="init", stage=current_stage});
+    self:fire_event({ type = "init", stage = current_stage });
 
     -- add callback at start of turn to check if progress is 100%; sometimes we reach 100% but are blocked
     core:add_listener(
@@ -458,7 +426,8 @@ end
 
 function LiProgression:progression_cooldown_left()
     -- Get number of turns before progression events can fire again; 0 means it's ready to fire
-    local last_progression_turn = cm:get_saved_value(self.last_progression_turn_name) or -CFSettings.progression_cooldown;
+    local last_progression_turn = cm:get_saved_value(self.last_progression_turn_name) or -CFSettings
+        .progression_cooldown;
     local turn_remaining = last_progression_turn - cm:turn_number() + CFSettings.progression_cooldown;
     if turn_remaining < 0 then
         turn_remaining = 0;
@@ -571,9 +540,9 @@ function LiProgression:advance_stage(trait_name, next_stage)
     local new_stage = self:set_stage(next_stage);
     self:log("Stage changed from " .. tostring(prev_stage) .. " to " .. tostring(new_stage));
     if new_stage ~= prev_stage then
-        cm:callback(function() 
+        cm:callback(function()
             self:set_progress_percent(0);
-            self:fire_event({type="enter", stage=next_stage});
+            self:fire_event({ type = "enter", stage = next_stage });
         end, 1);
     end
 end

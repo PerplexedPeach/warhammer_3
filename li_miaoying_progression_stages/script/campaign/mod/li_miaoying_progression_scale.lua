@@ -43,7 +43,6 @@ end
 local function broadcast_self()
     local name = "scale"; -- use as the key for everything
     li_miao:stage_register(name, this_stage, progression_callback);
-    -- li_miao:persistent_initialization_register(this_stage, persistent_diplomacy_bonus, "one-time diplomatic bonus for sigvald and azazel");
 
     core:add_listener(
         "MiaoEnterNameChange",

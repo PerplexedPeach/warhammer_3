@@ -372,7 +372,7 @@ local function broadcast_self()
 
     core:add_listener(
         "MorEnterNameChange",
-        li_miao.main_event,
+        li_mor.main_event,
         function(context)
             return context:type() == "enter";
         end,

@@ -384,8 +384,17 @@ end
 local function broadcast_self()
     local name = "fourth"; -- use as the key for everything
     li_mor:stage_register(name, this_stage, progression_callback);
-    li_mor:persistent_initialization_register(this_stage - 1, progress_to_this_stage_triggers,
-        "triggers for stage " .. this_stage);
+    core:add_listener(
+        "MorProgressionTrigger".. this_stage,
+        li_mor.main_event,
+        function(context)
+            return (context:type() == "enter" or context:type() == "init") and context:stage() == this_stage - 1;
+        end,
+        function(context)
+            progress_to_this_stage_triggers();
+        end,
+        false -- not persistent! This is important to avoid adding duplicate listeners inside
+    );
 end
 
 cm:add_first_tick_callback(function() broadcast_self() end);
