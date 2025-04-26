@@ -46,12 +46,12 @@ local function progression_callback(context, is_human)
                 li_mor:log(dilemma_name .. " choice " .. tostring(choice));
                 -- add sub/dom tracking here
                 if choice == 0 then
-                    li_mor:modify_sub_score(1);
+                    li_mor:modify_sub_score(CFSettings.mor_sub_gain);
                     li_mor:adjust_character_loyalty(-1);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), dilemma_sub_name);
                     li_mor:advance_stage(trait_name, this_stage);
                 elseif choice == 1 then
-                    li_mor:modify_sub_score(-1);
+                    li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
                     li_mor:adjust_character_loyalty(1);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), dilemma_dom_name);
                     li_mor:advance_stage(trait_name, this_stage);
@@ -72,9 +72,9 @@ local function progression_callback(context, is_human)
             -- roll for sub/dom choice
             local rand = cm:random_number(100, 1);
             if rand <= 50 then
-                li_mor:modify_sub_score(1);
+                li_mor:modify_sub_score(CFSettings.mor_sub_gain);
             else
-                li_mor:modify_sub_score(-1);
+                li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
             end
             li_mor:advance_stage(trait_name, this_stage);
         else
@@ -97,8 +97,14 @@ local function codex_mission_trigger(context)
     end
 
     -- listen for landmark existence
-    local built_landmark = region:building_exists("wh2_main_special_quintex_1") or
-        region:building_exists("wh2_main_special_quintex_2");
+    local built_landmark = region:building_exists("wh2_main_special_quintex_2");
+    if CFSettings.mor_min_landmark_for_quest < 3 and region:building_exists("wh2_main_special_quintex_1") then
+        built_landmark = true;
+    end
+    if CFSettings.mor_min_landmark_for_quest < 2 and region:building_exists("wh2_main_special_quintex_0") then
+        built_landmark = true;
+    end
+
     if not built_landmark then
         return;
     end
@@ -116,12 +122,10 @@ local function codex_mission_trigger(context)
 end
 
 local function slaanesh_aliance_trigger(context)
-    -- only fire once 2nd stage of Quintex landmark gets built
     local mor = li_mor:get_char();
     if mor == nil then
         return;
     end
-
 
     cm:set_saved_value(alliance_mission_key, true);
     if mor:faction():is_human() then

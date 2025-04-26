@@ -28,7 +28,7 @@ local function stage_enter_callback()
 end
 
 local function sub_choice(loyalty_change)
-    li_mor:modify_sub_score(1);
+    li_mor:modify_sub_score(CFSettings.mor_sub_gain);
     if loyalty_change then
         li_mor:adjust_character_loyalty(-1);
     end
@@ -36,7 +36,7 @@ local function sub_choice(loyalty_change)
 end
 
 local function dom_choice(loyalty_change)
-    li_mor:modify_sub_score(-1);
+    li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
     if loyalty_change then
         li_mor:adjust_character_loyalty(1);
     end

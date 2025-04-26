@@ -26,7 +26,7 @@ local function stage_enter_callback()
 end
 
 local function sub_choice(loyalty_change)
-    li_mor:modify_sub_score(1);
+    li_mor:modify_sub_score(CFSettings.mor_sub_gain);
     if loyalty_change then
         li_mor:adjust_character_loyalty(-1);
     end
@@ -34,7 +34,7 @@ local function sub_choice(loyalty_change)
 end
 
 local function dom_choice(loyalty_change)
-    li_mor:modify_sub_score(-1);
+    li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
     if loyalty_change then
         li_mor:adjust_character_loyalty(1);
     end
@@ -86,8 +86,8 @@ local function teclis_transaction()
         return;
     end
     -- teclis receives 50k gold
-    cm:treasury_mod(mor:faction():name(), -50000);
-    cm:treasury_mod(teclis:faction():name(), 50000);
+    cm:treasury_mod(mor:faction():name(), -CFSettings.mor_teclis_donation);
+    cm:treasury_mod(teclis:faction():name(), CFSettings.mor_teclis_donation);
     cm:force_make_peace(teclis:faction():name(), mor:faction():name());
     for i = 1, 5 do
         cm:apply_dilemma_diplomatic_bonus(mor:faction():name(), teclis:faction():name(), 5);

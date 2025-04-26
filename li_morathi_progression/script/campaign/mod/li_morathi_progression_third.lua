@@ -31,7 +31,7 @@ local function stage_enter_callback()
 end
 
 local function sub_choice(loyalty_change)
-    li_mor:modify_sub_score(1);
+    li_mor:modify_sub_score(CFSettings.mor_sub_gain);
     if loyalty_change then
         li_mor:adjust_character_loyalty(-1);
     end
@@ -39,7 +39,7 @@ local function sub_choice(loyalty_change)
 end
 
 local function dom_choice(loyalty_change)
-    li_mor:modify_sub_score(-1);
+    li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
     if loyalty_change then
         li_mor:adjust_character_loyalty(1);
     end
@@ -96,8 +96,8 @@ local function teclis_transaction()
         cm:trigger_dilemma(mor:faction():name(), "li_morathi_shrine_trade");
     end
     cm:transfer_region_to_faction(shrine_of_khaine_region, teclis:faction():name());
-    cm:treasury_mod(mor:faction():name(), -10000);
-    cm:treasury_mod(teclis:faction():name(), 10000);
+    cm:treasury_mod(mor:faction():name(), -CFSettings.mor_sok_donation);
+    cm:treasury_mod(teclis:faction():name(), CFSettings.mor_sok_donation);
     cm:force_make_peace(teclis:faction():name(), mor:faction():name());
     cm:force_remove_ancillary_from_faction(mor:faction(), "wh2_dlc10_anc_weapon_the_widowmaker_1");
     cm:force_remove_ancillary_from_faction(mor:faction(), "wh2_dlc10_anc_weapon_the_widowmaker_2");
