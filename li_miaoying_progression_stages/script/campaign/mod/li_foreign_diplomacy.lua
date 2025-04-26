@@ -6,6 +6,7 @@ local consecutive_loss_to_nkari_name = "li_miaoying_consec_loss_nkari";
 local nkari_subtype = "wh3_main_sla_nkari";
 
 local enable_diplomacy_for_cultures = { ["wh3_main_sla_slaanesh"] = true, ["wh_main_chs_chaos"] = true };
+local corruption_factions = { "wh3_dlc20_chs_sigvald", "wh3_dlc20_chs_azazel" };
 
 local function trait_name_for_stage(stage)
     if stage < 4 then
@@ -287,15 +288,15 @@ local function add_progression_trigger_with_diplomacy()
             -- loop over all relevant factions; max of 1 applied for each option
             local to_add = 0;
             if check_if_faction_list_contains_cultures(miao:faction():factions_non_aggression_pact_with(),
-                enable_diplomacy_for_cultures, "NAP with ") then
+                    enable_diplomacy_for_cultures, "NAP with ") then
                 to_add = to_add + CFSettings.miao_progress_nap;
             end
             if check_if_faction_list_contains_cultures(miao:faction():factions_trading_with(),
-                enable_diplomacy_for_cultures, "trading with ") then
+                    enable_diplomacy_for_cultures, "trading with ") then
                 to_add = to_add + CFSettings.miao_progress_trade;
             end
             if check_if_faction_list_contains_cultures(miao:faction():factions_allied_with(),
-                enable_diplomacy_for_cultures, "allied with ") then
+                    enable_diplomacy_for_cultures, "allied with ") then
                 to_add = to_add + CFSettings.miao_progress_ally;
             end
 
@@ -310,7 +311,7 @@ local function add_progression_trigger_with_diplomacy()
                 end
             end
 
-            -- each diplomacy point is worth 5% progression 
+            -- each diplomacy point is worth 5% progression
             li_miao:modify_progress_percent(to_add, "diplomacy");
         end,
         true);
@@ -330,7 +331,6 @@ end
 
 local function persistent_diplomacy_bonus()
     li_miao:log("Adding diplomatic bonuses to Slaanesh forces to reflect their change in strategy in dealing with you");
-    local corruption_factions = { "wh3_dlc20_chs_sigvald", "wh3_dlc20_chs_azazel" };
     core:add_listener(
         "FactionTurnStartMiaoCorruptingForceChangeAttitude",
         "FactionTurnStart",
@@ -353,7 +353,6 @@ local function persistent_diplomacy_bonus()
 end
 
 local function broadcast_self()
-
     -- only register main progression response dilemmas when player is slaanesh
     local nkari = get_nkari();
     -- AI nkari just ignores her responses
@@ -363,23 +362,48 @@ local function broadcast_self()
         core:add_listener(progression_response_listener_name, li_miao.main_event, true, progression_response_callback,
             true);
     end
-    -- loss callback always fires; only get dilemma for flavour text if human though (checked separately for each faction)
-    -- can only leave a lasting mark on her when she's sufficiently corrupted
-    li_miao:persistent_initialization_register(2, function()
-        li_miao:log("Miao Ying sufficiently corrupted to start consecutive loss sequence to Nkari");
-        core:add_listener("BattleCompletedMiaoYingNkariLoss", "BattleCompleted", true, miao_loss_callback, true);
-    end, "start count consecutive losses");
-    -- check if she's already a vassal or confederated to add new progression triggers
+
     local miao = li_miao:get_char();
+    if miao ~= nil then
+        -- loss callback always fires; only get dilemma for flavour text if human though (checked separately for each faction)
+        -- can only leave a lasting mark on her when she's sufficiently corrupted
+        core:add_listener(
+            "MiaoBattleCompletedLossFactory",
+            li_miao.main_event,
+            function(context)
+                return (context:type() == "enter" or context:type() == "init") and context:stage() >= 2;
+            end,
+            function(context)
+                li_miao:log("Miao Ying sufficiently corrupted to start consecutive loss sequence to Nkari");
+                core:add_listener(
+                    "BattleCompletedMiaoYingNkariLoss",
+                    "BattleCompleted",
+                    true,
+                    miao_loss_callback,
+                    true);
+            end,
+            false -- not persistent! This is important to avoid adding duplicate listeners inside
+        );
+
+        core:add_listener(
+            "MiaoDiplomacyExpansion",
+            li_miao.main_event,
+            function(context)
+                return (context:type() == "enter" or context:type() == "init") and context:stage() >= 1;
+            end,
+            function(context)
+                enable_diplomacy();
+                persistent_diplomacy_bonus();
+            end,
+            false -- not persistent! This is important to avoid adding duplicate listeners inside
+        );
+    end
+
+    -- check if she's already a vassal or confederated to add new progression triggers
     if miao ~= nil and nkari ~= nil then
         if miao:faction():is_vassal_of(nkari:faction()) or (miao:faction():name() == nkari:faction():name()) then
             add_progression_trigger_as_subject();
         end
-    end
-    if miao ~= nil then
-        -- enable dipomacy with Slaanesh when Miao's sufficiently corrupted
-        li_miao:persistent_initialization_register(1, enable_diplomacy, "enable diplomacy with all major corrupting forces");
-        li_miao:persistent_initialization_register(1, persistent_diplomacy_bonus, "diplomatic bonus until positive");
     end
 end
 

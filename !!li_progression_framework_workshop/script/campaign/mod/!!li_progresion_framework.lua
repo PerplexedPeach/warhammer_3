@@ -1,4 +1,4 @@
-local version = "1.1.0";
+local version = "2.0.0";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
@@ -41,7 +41,6 @@ core:add_listener(
     "MctOptionSettingFinalized",
     true,
     function(context)
-        local mct = context:mct();
         local mct_mod = context:mod();
         if mct_mod:get_key() ~= mod_name then
             return false;
@@ -97,7 +96,7 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
     })
     self.REGISTERED_STAGES = { [0] = "" };
     self.PROGRESSION_CALLBACK = { [0] = nil }
-    self.ENTER_CALLBACK = {};
+    -- TODO also deprecate persistent callbacks (replace with listener on enter and init with that stage)
     self.PERSISTENT_CALLBACK = {};
     self.PERSISTENT_CALLBACK_NAMES = {};
 
@@ -133,11 +132,10 @@ function LiProgression:error(message)
 end
 
 --- Fire a main corruption event that others can listen to
----@param type string one of {"progression", "accept", "reject"}
----@param stage integer numerical stage of the next one we're advancing to
-function LiProgression:fire_corrupt_event(type, stage)
-    core:trigger_custom_event(self.main_event, { type = type, stage = stage });
-    self:log(self.main_event .. type .. tostring(stage));
+---@param context_table table table of context to pass to the event (e.g. { type = "enter", stage = 1 })
+function LiProgression:fire_event(context_table)
+    self:log(self.main_event .. " " .. context_table.type);
+    core:trigger_custom_event(self.main_event, context_table);
 end
 
 -- each stage mod decides the condition to advance to it (and not advance to the next stage)
@@ -151,20 +149,8 @@ function LiProgression:stage_register(name, stage, callback_for_progression, cal
     end
     self.REGISTERED_STAGES[stage] = name;
     self.PROGRESSION_CALLBACK[stage] = callback_for_progression;
-    self:stage_enter_callback_register(stage, callback_on_entering);
-end
-
-function LiProgression:stage_enter_callback_register(stage, callback)
-    self:log("Registering stage enter callback for stage " .. tostring(stage));
-    if not is_number(stage) then
-        self:log("Rejecting registration of invalid stage");
-        return
-    end
-    if self.ENTER_CALLBACK[stage] then
-        local callbacks = self.ENTER_CALLBACK[stage];
-        callbacks[#callbacks + 1] = callback;
-    else
-        self.ENTER_CALLBACK[stage] = { callback };
+    if callback_on_entering ~= nil then
+        self:log("Registering entering callbacks is deprecated! Use a listener for " .. self.main_event .. " with type 'enter' instead");
     end
 end
 
@@ -371,13 +357,8 @@ function LiProgression:set_stage(stage)
     if self.REGISTERED_STAGES[stage] then
         self:log("Set stage " .. tostring(stage));
         self:switch_art_set_stage(stage);
-        local on_enter_callbacks = self.ENTER_CALLBACK[stage];
-        if on_enter_callbacks then
-            for i = 1, #on_enter_callbacks do
-                on_enter_callbacks[i]();
-            end
-        end
         cm:set_saved_value(self.stored_stage_name, stage);
+        -- TODO remove persistent callbacks and use listeners instead
         self:_call_persistent_callback_factory(stage);
         return stage;
     else
@@ -421,6 +402,8 @@ function LiProgression:initialize()
     end, 1.3, "Li_" .. self.shortname .. "_initialize");
     -- reload dilemma queue
     self.dilemma_queue:load();
+
+    self:fire_event({type="init", stage=current_stage});
 
     -- add callback at start of turn to check if progress is 100%; sometimes we reach 100% but are blocked
     core:add_listener(
@@ -572,7 +555,6 @@ function LiProgression:_call_progression_callback(context, is_human)
     if callback ~= nil then
         self:log("Progression callback for stage " .. tostring(next_stage));
         callback(context, is_human);
-        self:fire_corrupt_event("progression", next_stage);
         cm:set_saved_value(self.last_progression_turn_name, cm:turn_number());
         return true;
     else
@@ -585,11 +567,15 @@ function LiProgression:advance_stage(trait_name, next_stage)
     cm:force_add_trait("character_cqi:" .. self:get_char():cqi(), trait_name, 1);
     local prev_stage = self:get_stage();
     -- clear progress upon entering stage
+    -- need to add some delay or it won't fire for some reason
     local new_stage = self:set_stage(next_stage);
+    self:log("Stage changed from " .. tostring(prev_stage) .. " to " .. tostring(new_stage));
     if new_stage ~= prev_stage then
-        self:set_progress_percent(0);
+        cm:callback(function() 
+            self:set_progress_percent(0);
+            self:fire_event({type="enter", stage=next_stage});
+        end, 1);
     end
-    self:fire_corrupt_event("accept", next_stage);
 end
 
 function LiProgression:attacker_or_defender()

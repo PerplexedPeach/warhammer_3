@@ -58,7 +58,7 @@ local function progression_callback(context, is_human)
                 elseif choice == 2 then
                     li_mor:adjust_character_loyalty(2);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), dilemma_reject_name);
-                    li_mor:fire_corrupt_event("reject", this_stage);
+                    li_mor:fire_event({type="reject", stage=this_stage});
                 end
                 core:remove_listener(delimma_choice_listener_name);
             end,
@@ -78,7 +78,7 @@ local function progression_callback(context, is_human)
             end
             li_mor:advance_stage(trait_name, this_stage);
         else
-            li_mor:fire_corrupt_event("reject", this_stage);
+            li_mor:fire_event({type="reject", stage=this_stage});
         end
     end
 end

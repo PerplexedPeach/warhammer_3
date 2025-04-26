@@ -2,11 +2,6 @@ local trait_name = "li_trait_corrupt_boots";
 local dilemma_name = "li_enchant_corrupt_boots";
 local li_ai_corruption_chance = 50;
 local this_stage = 2;
-
-local function stage_enter_callback()
-    li_miao:change_title(this_stage);
-end
-
  
 local function progression_callback(context, is_human)
     -- dilemma for choosing to accept or reject the gift
@@ -27,7 +22,7 @@ local function progression_callback(context, is_human)
                 if choice == 0 then
                     li_miao:advance_stage(trait_name, this_stage);
                 else
-                    li_miao:fire_corrupt_event("reject", this_stage);
+                    li_miao:fire_event({type="reject", stage=this_stage});
                 end
                 core:remove_listener(delimma_choice_listener_name);
             end,
@@ -40,14 +35,14 @@ local function progression_callback(context, is_human)
         if rand <= li_ai_corruption_chance then
             li_miao:advance_stage(trait_name, this_stage);
         else
-            li_miao:fire_corrupt_event("reject", this_stage);
+            li_miao:fire_event({type="reject", stage=this_stage});
         end
     end
 end
 
 local function broadcast_self()
     local name = "fishnet";  -- use as the key for everything
-    li_miao:stage_register(name, this_stage, progression_callback, stage_enter_callback);
+    li_miao:stage_register(name, this_stage, progression_callback);
 end
 
 cm:add_first_tick_callback(function() broadcast_self() end);

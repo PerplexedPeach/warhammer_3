@@ -76,7 +76,7 @@ local function progression_callback(context, is_human)
         if rand <= li_ai_corruption_chance then
             li_mor:advance_stage(trait_name, this_stage);
         else
-            li_mor:fire_corrupt_event("reject", this_stage);
+            li_mor:fire_event({type="reject", stage=this_stage});
         end
     end
 end

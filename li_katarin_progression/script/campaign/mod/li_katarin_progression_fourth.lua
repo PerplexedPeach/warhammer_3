@@ -85,7 +85,7 @@ local function progression_callback(context, is_human)
                 if choice == 0 then
                     li_kat:advance_stage(trait_name, this_stage);
                 else
-                    li_kat:fire_corrupt_event("reject", this_stage);
+                    li_kat:fire_event({type="reject", stage=this_stage});
                 end
                 core:remove_listener(delimma_choice_listener_name);
             end,
@@ -98,7 +98,7 @@ local function progression_callback(context, is_human)
         if rand <= li_ai_corruption_chance then
             li_kat:advance_stage(trait_name, this_stage);
         else
-            li_kat:fire_corrupt_event("reject", this_stage);
+            li_kat:fire_event({type="reject", stage=this_stage});
         end
     end
 end

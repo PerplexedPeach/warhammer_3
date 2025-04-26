@@ -3,10 +3,6 @@ local dilemma_name = "li_offer_corrupt_boots";
 local li_ai_corruption_chance = 30;
 local this_stage = 1;
 
-local function stage_enter_callback()
-    li_miao:change_title(this_stage);
-end
-
 local function progression_callback(context, is_human)
     -- dilemma for choosing to accept or reject the gift
     if is_human then
@@ -26,7 +22,7 @@ local function progression_callback(context, is_human)
                 if choice == 0 then
                     li_miao:advance_stage(trait_name, this_stage);
                 else
-                    li_miao:fire_corrupt_event("reject", this_stage);
+                    li_miao:fire_event({type="reject", stage=this_stage});
                 end
                 core:remove_listener(delimma_choice_listener_name);
             end,
@@ -39,24 +35,33 @@ local function progression_callback(context, is_human)
         if rand <= li_ai_corruption_chance then
             li_miao:advance_stage(trait_name, this_stage);
         else
-            li_miao:fire_corrupt_event("reject", this_stage);
+            li_miao:fire_event({type="reject", stage=this_stage});
         end
-    end
-end
-
-local function persistent_diplomacy_bonus()
-    li_miao:log("Adding diplomatic bonuses to Slaanesh forces to reflect their change in strategy in dealing with you");
-    local miao = li_miao:get_char();
-    if miao ~= nil then
-        cm:apply_dilemma_diplomatic_bonus(miao:faction():name(), "wh3_dlc20_chs_sigvald", 5);
-        cm:apply_dilemma_diplomatic_bonus(miao:faction():name(), "wh3_dlc20_chs_azazel", 5);
     end
 end
 
 local function broadcast_self()
     local name = "scale"; -- use as the key for everything
-    li_miao:stage_register(name, this_stage, progression_callback, stage_enter_callback);
-    li_miao:persistent_initialization_register(this_stage, persistent_diplomacy_bonus, "one-time diplomatic bonus for sigvald and azazel");
+    li_miao:stage_register(name, this_stage, progression_callback);
+    -- li_miao:persistent_initialization_register(this_stage, persistent_diplomacy_bonus, "one-time diplomatic bonus for sigvald and azazel");
+
+    core:add_listener(
+        "MiaoEnterNameChange",
+        li_miao.main_event,
+        function(context)
+            return context:type() == "enter";
+        end,
+        function(context)
+            li_miao:change_title(context:stage());
+            li_miao:log("Adding diplomatic bonuses to Slaanesh forces to reflect their change in strategy in dealing with you");
+            local miao = li_miao:get_char();
+            if miao ~= nil then
+                cm:apply_dilemma_diplomatic_bonus(miao:faction():name(), "wh3_dlc20_chs_sigvald", 5);
+                cm:apply_dilemma_diplomatic_bonus(miao:faction():name(), "wh3_dlc20_chs_azazel", 5);
+            end
+        end,
+        true
+    );
 end
 
 cm:add_first_tick_callback(function() broadcast_self() end);
