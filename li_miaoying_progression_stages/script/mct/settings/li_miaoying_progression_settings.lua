@@ -1,6 +1,6 @@
 local mct = get_mct();
 local cf = mct:get_mod_by_key("li_cf");
-local this_section = cf:add_new_section("li_miao");
+local this_section = cf:add_new_section("miao");
 -- TODO consider character specific cooldowns
 -- local cd_option = cf:add_new_option("progression_cooldown_miaoying", "slider")
 -- cd_option:set_default_value(3);
