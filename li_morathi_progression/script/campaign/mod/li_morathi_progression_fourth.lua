@@ -4,9 +4,10 @@ local teclis_trait_name = "li_trait_teclis_morathi";
 local li_ai_corruption_chance = 15;
 local this_stage = 4;
 
-local missions = { "li_morathi_teclis_convene", "li_morathi_progression_fourth_battle"};
-local missions_finished = { "li_morathi_teclis_convene_finished", "li_morathi_convene_distraction_finished"};
-local dilemmas = { "li_morathi_teclis_convinced", "li_morathi_teclis_orgy", "li_morathi_teclis_confed", "li_morathi_teclis_final"};
+local missions = { "li_morathi_teclis_convene", "li_morathi_progression_fourth_battle" };
+local missions_finished = { "li_morathi_teclis_convene_finished", "li_morathi_convene_distraction_finished" };
+local dilemmas = { "li_morathi_teclis_convinced", "li_morathi_teclis_orgy", "li_morathi_teclis_confed",
+    "li_morathi_teclis_final" };
 local events = {
     { ["sub"] = "li_morathi_teclis_orgy_sub", ["dom"] = "li_morathi_teclis_orgy_dom" },
 };
@@ -19,11 +20,6 @@ local progression_dilemma_name = dilemmas[#dilemmas];
 local enter_mission_next_turn = "li_morathi_teclis_enter_mission_next_turn";
 local confed_next_turn = "li_morathi_teclis_confed_next_turn";
 local progress_next_turn = "li_morathi_teclis_progress_next_turn";
-
-local function stage_enter_callback()
-    -- TODO consider if we can use different names depending on sub/dom level
-    li_mor:change_title(this_stage);
-end
 
 local function sub_choice(loyalty_change)
     li_mor:modify_sub_score(CFSettings.mor_sub_gain);
@@ -74,7 +70,7 @@ local function progression_callback(context, is_human)
         if rand <= li_ai_corruption_chance then
             li_mor:advance_stage(trait_name, this_stage);
         else
-            li_mor:fire_event({type="reject", stage=this_stage});
+            li_mor:fire_event({ type = "reject", stage = this_stage });
         end
     end
 end
@@ -195,7 +191,6 @@ local function teclis_distraction_battle_end(context)
             -- progression on the next turn
             core:remove_listener(delimma_choice_listener_name);
             cm:set_saved_value(confed_next_turn, true);
-
         end,
         true
     );
@@ -231,10 +226,10 @@ local function teclis_confederation()
             li_mor:clear_faction_character_stance(target:faction());
             cm:force_confederation(mor:faction():name(), target:faction():name());
             -- cm:wound_character("character_cqi:" .. target:cqi(), 999);
-        
+
             -- seems to not trigger reliably?
             -- cm:change_character_localised_name(target, "names_name_" .. li_mor.teclis.name_id, "", "", "");
-        
+
             core:remove_listener(delimma_choice_listener_name);
             cm:set_saved_value(progress_next_turn, true);
         end,
@@ -249,7 +244,7 @@ local function keep_target_alive_for_mission(context)
     local mor = li_mor:get_char();
     if mor == nil then
         return;
-    end 
+    end
     local teclis = li_mor:get_target_character(li_mor.teclis);
     if teclis == nil then
         respawn_teclis()
@@ -282,7 +277,6 @@ local function start_distraction_mission(context)
     if mor:faction():is_human() then
         li_mor:log("triggering distraction mission");
         cm:trigger_mission(mor:faction():name(), missions[2], true);
-
     else
         -- give AI a pass
         li_mor:log("skipping mission battle for AI")
@@ -389,7 +383,7 @@ end
 
 local function broadcast_self()
     local name = "fourth"; -- use as the key for everything
-    li_mor:stage_register(name, this_stage, progression_callback, stage_enter_callback);
+    li_mor:stage_register(name, this_stage, progression_callback);
     li_mor:persistent_initialization_register(this_stage - 1, progress_to_this_stage_triggers,
         "triggers for stage " .. this_stage);
 end

@@ -3,9 +3,6 @@ local dilemma_name = "li_offer_corrupt_amulet";
 local li_ai_corruption_chance = 30;
 local this_stage = 1;
 
-local function stage_enter_callback()
-    li_kat:change_title(this_stage);
-end
 
 -- from stage 0 to stage 1, progression is offered after using heart of winter twice in a battle
 -- hooks where each stage gets callback
@@ -32,8 +29,10 @@ local function initial_amulet_offer_after_battle_listener(context)
     local faction = character:faction();
     local faction_cqi = faction:command_queue_index();
     if faction:is_human() then
-        local times_base = pb:get_how_many_times_ability_has_been_used_in_battle(faction_cqi, heart_of_winter_ability_name);
-        local times_overcast = pb:get_how_many_times_ability_has_been_used_in_battle(faction_cqi, heart_of_winter_ability_name .. "_upgraded");
+        local times_base = pb:get_how_many_times_ability_has_been_used_in_battle(faction_cqi,
+            heart_of_winter_ability_name);
+        local times_overcast = pb:get_how_many_times_ability_has_been_used_in_battle(faction_cqi,
+            heart_of_winter_ability_name .. "_upgraded");
         local times_how = times_base + times_overcast;
         li_kat:log("Times used heart of winter " .. tostring(times_how));
         li_kat:modify_progress_percent(CFSettings.kat_heart_of_winter_corruption * times_how, "heart of winter in battle");
@@ -65,7 +64,7 @@ local function progression_callback(context, is_human)
                 if choice == 0 then
                     li_kat:advance_stage(trait_name, this_stage);
                 else
-                    li_kat:fire_event({type="reject", stage=this_stage});
+                    li_kat:fire_event({ type = "reject", stage = this_stage });
                 end
                 core:remove_listener(delimma_choice_listener_name);
             end,
@@ -78,15 +77,27 @@ local function progression_callback(context, is_human)
         if rand <= li_ai_corruption_chance then
             li_kat:advance_stage(trait_name, this_stage);
         else
-            li_kat:fire_event({type="reject", stage=this_stage});
+            li_kat:fire_event({ type = "reject", stage = this_stage });
         end
     end
 end
 
 local function broadcast_self()
     -- command script will define API to register stage
-    local name = "first";  -- use as the key for everything
-    li_kat:stage_register(name, this_stage, progression_callback, stage_enter_callback);
+    local name = "first"; -- use as the key for everything
+    li_kat:stage_register(name, this_stage, progression_callback);
+
+    core:add_listener(
+        "KatEnterNameChange",
+        li_kat.main_event,
+        function(context)
+            return context:type() == "enter";
+        end,
+        function(context)
+            li_kat:change_title(context:stage());
+        end,
+        true
+    );
 
     core:add_listener(
         "BattleCompleted_offer_amulet",

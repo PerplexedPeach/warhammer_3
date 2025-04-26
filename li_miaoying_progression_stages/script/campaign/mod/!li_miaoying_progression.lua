@@ -62,7 +62,7 @@ core:add_listener(
         return faction_name == miao_faction and mission:starts_with("wh3_main_survival_") and mission:find("slaanesh");
     end,
     function(context)
-        li_miao:trigger_progression(context, context:faction():is_human());
+        li_miao:modify_progress_percent(100, "survival mission success");
     end,
     true
 );
@@ -89,7 +89,7 @@ core:add_listener(
         -- prevent triggering more than once after taking a gift
         local last_turn_gift_taken = cm:get_saved_value(last_gift_taken_turn_name);
         if last_turn_gift_taken == nil or (last_turn_gift_taken + rifts_duration + 1) > cm:turn_number() then
-            li_miao:trigger_progression(context, miao:faction():is_human());
+            li_miao:modify_progress_percent(100, "taken slaanesh gift");
             cm:set_saved_value(last_gift_taken_turn_name, cm:turn_number());
         end
     end,

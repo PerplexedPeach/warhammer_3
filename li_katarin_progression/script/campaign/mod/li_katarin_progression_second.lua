@@ -3,10 +3,6 @@ local dilemma_name = "li_offer_open_eye";
 local li_ai_corruption_chance = 50;
 local this_stage = 2;
 
-local function stage_enter_callback()
-    li_kat:change_title(this_stage);
-end
-
 -- city to dilemma title mapping
 local city_to_dilemma = {
     ["wh3_main_chaos_region_praag"] = "li_katarin_stage_1_praag",
@@ -42,8 +38,8 @@ local function visit_major_kislev_city(context)
     end
 
     li_kat:log("Events seen " ..
-    tostring(events_seen) ..
-    " out of " .. tostring(CFSettings.kat_events_to_progress_second) .. " needed to progress to stage 2");
+        tostring(events_seen) ..
+        " out of " .. tostring(CFSettings.kat_events_to_progress_second) .. " needed to progress to stage 2");
 
     -- check what region we're in and if we can trigger the event
     local region = kat:region();
@@ -55,7 +51,7 @@ local function visit_major_kislev_city(context)
     local event_name = city_to_dilemma[region_name];
     -- is there an event registered
     li_kat:log("Starting a turn in settlement of region " ..
-    region_name .. " associated with event " .. tostring(event_name));
+        region_name .. " associated with event " .. tostring(event_name));
     if event_name == nil or cm:get_saved_value(event_name) then
         return;
     end
@@ -90,7 +86,7 @@ local function progression_callback(context, is_human)
                 if choice == 0 then
                     li_kat:advance_stage(trait_name, this_stage);
                 else
-                    li_kat:fire_event({type="reject", stage=this_stage});
+                    li_kat:fire_event({ type = "reject", stage = this_stage });
                 end
                 core:remove_listener(delimma_choice_listener_name);
             end,
@@ -103,7 +99,7 @@ local function progression_callback(context, is_human)
         if rand <= li_ai_corruption_chance then
             li_kat:advance_stage(trait_name, this_stage);
         else
-            li_kat:fire_event({type="reject", stage=this_stage});
+            li_kat:fire_event({ type = "reject", stage = this_stage });
         end
     end
 end
@@ -111,7 +107,7 @@ end
 local function broadcast_self()
     -- command script will define API to register stage
     local name = "second"; -- use as the key for everything
-    li_kat:stage_register(name, this_stage, progression_callback, stage_enter_callback);
+    li_kat:stage_register(name, this_stage, progression_callback);
 
     -- event up as we visit Kislev cities
     core:add_listener(

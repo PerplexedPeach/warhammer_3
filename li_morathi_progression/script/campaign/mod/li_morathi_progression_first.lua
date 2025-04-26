@@ -24,10 +24,6 @@ local dilemma_sub_name = "li_morathi_progression_consummate_sub";
 local dilemma_dom_name = "li_morathi_progression_consummate_dom";
 local dilemma_reject_name = "li_morathi_progression_consummate_reject";
 
-local function stage_enter_callback()
-    li_mor:change_title(this_stage);
-end
-
 local function progression_callback(context, is_human)
     -- dilemma for choosing to accept or reject the gift
     if is_human then
@@ -372,7 +368,20 @@ local function broadcast_self()
 
     -- command script will define API to register stage
     local name = "first"; -- use as the key for everything
-    li_mor:stage_register(name, this_stage, progression_callback, stage_enter_callback);
+    li_mor:stage_register(name, this_stage, progression_callback);
+
+    core:add_listener(
+        "MorEnterNameChange",
+        li_miao.main_event,
+        function(context)
+            return context:type() == "enter";
+        end,
+        function(context)
+            -- TODO consider if we can use different names depending on sub/dom level
+            li_mor:change_title(context:stage());
+        end,
+        true
+    );
 
     if li_mor:get_stage() == 0 then
         core:add_listener(

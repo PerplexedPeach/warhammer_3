@@ -25,11 +25,6 @@ local progression_dilemma_name = "li_morathi_nkari_progression";
 
 local progress_next_turn = "li_morathi_nkari_progress_next_turn";
 
-local function stage_enter_callback()
-    -- TODO consider if we can use different names depending on sub/dom level
-    li_mor:change_title(this_stage);
-end
-
 local function sub_choice(loyalty_change)
     li_mor:modify_sub_score(CFSettings.mor_sub_gain);
     if loyalty_change then
@@ -542,7 +537,7 @@ end
 
 local function broadcast_self()
     local name = "third"; -- use as the key for everything
-    li_mor:stage_register(name, this_stage, progression_callback, stage_enter_callback);
+    li_mor:stage_register(name, this_stage, progression_callback);
     li_mor:persistent_initialization_register(this_stage - 1, progress_to_this_stage_triggers,
         "triggers for stage " .. this_stage);
 end

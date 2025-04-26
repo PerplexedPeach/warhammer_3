@@ -3,10 +3,6 @@ local dilemma_name = "li_mark_tzesla_seal";
 local li_ai_corruption_chance = 80;
 local this_stage = 4;
 
-local function stage_enter_callback()
-    li_kat:change_title(this_stage);
-end
-
 -- city to dilemma title mapping
 local city_to_dilemma = {
     ["wh3_main_chaos_region_praag"] = "li_katarin_stage_3_praag",
@@ -106,7 +102,7 @@ end
 local function broadcast_self()
     -- command script will define API to register stage
     local name = "fourth";  -- use as the key for everything
-    li_kat:stage_register(name, this_stage, progression_callback, stage_enter_callback);
+    li_kat:stage_register(name, this_stage, progression_callback);
 
     -- event up as we visit Kislev cities
     core:add_listener(
