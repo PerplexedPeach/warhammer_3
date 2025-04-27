@@ -95,7 +95,7 @@ function LiProgression:new(main_shortname, main_faction, main_subtype, main_art_
         __index = LiProgression
     })
     self.REGISTERED_STAGES = { [0] = "" };
-    self.PROGRESSION_CALLBACK = { [0] = nil }
+    self.PROGRESSION_CALLBACK = { [0] = nil };
 
 
     self.shortname = main_shortname;
@@ -132,8 +132,24 @@ end
 --- Fire a main corruption event that others can listen to
 ---@param context_table table table of context to pass to the event (e.g. { type = "enter", stage = 1 })
 function LiProgression:fire_event(context_table)
-    self:log(self.main_event .. " " .. context_table.type);
+    self:log(self.main_event .. " " .. context_table.type .. " " .. tostring(context_table.stage));
     core:trigger_custom_event(self.main_event, context_table);
+end
+
+--- Add a listener to corruption events, wrapper around core:add_listener
+---@param listener_name string name of the listener (does not have to be unique, but allows for easier debugging and removal if unique)
+---@param conditional_test boolean|function function to test if the listener should fire (or true for always)
+---@param target_callback function function taking in context as a parameter to call when the listener fires
+---@param listener_persists_after_target_callback_called boolean if false, the listener will only be called once per game session
+function LiProgression:add_listener(listener_name, conditional_test, target_callback,
+                                    listener_persists_after_target_callback_called)
+    core:add_listener(
+        listener_name,
+        self.main_event,
+        conditional_test,
+        target_callback,
+        listener_persists_after_target_callback_called
+    );
 end
 
 -- each stage mod decides the condition to advance to it (and not advance to the next stage)
@@ -367,11 +383,10 @@ function LiProgression:initialize()
         self:set_stage(current_stage);
         -- also set progress to update
         self:set_progress_percent(self:get_progress_percent());
+        self:fire_event({ type = "init", stage = current_stage });
     end, 1.3, "Li_" .. self.shortname .. "_initialize");
     -- reload dilemma queue
     self.dilemma_queue:load();
-
-    self:fire_event({ type = "init", stage = current_stage });
 
     -- add callback at start of turn to check if progress is 100%; sometimes we reach 100% but are blocked
     core:add_listener(

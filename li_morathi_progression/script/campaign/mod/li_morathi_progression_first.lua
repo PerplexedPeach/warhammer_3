@@ -370,9 +370,8 @@ local function broadcast_self()
     local name = "first"; -- use as the key for everything
     li_mor:stage_register(name, this_stage, progression_callback);
 
-    core:add_listener(
+    li_mor:add_listener(
         "MorEnterNameChange",
-        li_mor.main_event,
         function(context)
             return context:type() == "enter";
         end,

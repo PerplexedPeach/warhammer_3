@@ -87,9 +87,8 @@ local function broadcast_self()
     local name = "first"; -- use as the key for everything
     li_kat:stage_register(name, this_stage, progression_callback);
 
-    core:add_listener(
+    li_kat:add_listener(
         "KatEnterNameChange",
-        li_kat.main_event,
         function(context)
             return context:type() == "enter";
         end,

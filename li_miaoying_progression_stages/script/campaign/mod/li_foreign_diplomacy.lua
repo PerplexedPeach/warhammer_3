@@ -318,6 +318,7 @@ local function add_progression_trigger_with_diplomacy()
 end
 
 local function enable_diplomacy()
+    li_miao:log("Enabling all diplomacy between Miao and Slaanesh factions");
     local miao = li_miao:get_char();
     if miao ~= nil then
         for culture, _ in pairs(enable_diplomacy_for_cultures) do
@@ -359,17 +360,20 @@ local function broadcast_self()
     if nkari ~= nil and nkari:faction():is_human() then
         li_miao:log("As player Nkari, listening to respond to Miao progression events");
         -- listen for main progression events
-        core:add_listener(progression_response_listener_name, li_miao.main_event, true, progression_response_callback,
-            true);
+        li_miao:add_listener(
+            progression_response_listener_name,
+            true,
+            progression_response_callback,
+            true
+        );
     end
 
     local miao = li_miao:get_char();
     if miao ~= nil then
         -- loss callback always fires; only get dilemma for flavour text if human though (checked separately for each faction)
         -- can only leave a lasting mark on her when she's sufficiently corrupted
-        core:add_listener(
+        li_miao:add_listener(
             "MiaoBattleCompletedLossFactory",
-            li_miao.main_event,
             function(context)
                 return (context:type() == "enter" or context:type() == "init") and context:stage() >= 2;
             end,
@@ -385,9 +389,8 @@ local function broadcast_self()
             false -- not persistent! This is important to avoid adding duplicate listeners inside
         );
 
-        core:add_listener(
+        li_miao:add_listener(
             "MiaoDiplomacyExpansion",
-            li_miao.main_event,
             function(context)
                 return (context:type() == "enter" or context:type() == "init") and context:stage() >= 1;
             end,

@@ -207,9 +207,8 @@ local function broadcast_self()
     li_miao:stage_register("plug", this_stage, progression_callback);
     li_miao:stage_register("plug_preg", this_stage + 1, nil); -- nil callback so you can't naturally advance to it
 
-    core:add_listener(
+    li_miao:add_listener(
         "MiaoEnterAdvancedPreg",
-        li_miao.main_event,
         function(context)
             return context:type() == "enter" and context:stage() >= this_stage;
         end,
@@ -232,9 +231,8 @@ local function broadcast_self()
     );
 
 
-    core:add_listener(
+    li_miao:add_listener(
         "MiaoBattleCompletedBirthFactory",
-        li_miao.main_event,
         function(context)
             return (context:type() == "enter" or context:type() == "init") and context:stage() >= this_stage;
         end,

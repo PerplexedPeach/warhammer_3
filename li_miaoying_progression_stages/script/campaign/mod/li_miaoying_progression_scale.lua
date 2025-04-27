@@ -44,9 +44,8 @@ local function broadcast_self()
     local name = "scale"; -- use as the key for everything
     li_miao:stage_register(name, this_stage, progression_callback);
 
-    core:add_listener(
+    li_miao:add_listener(
         "MiaoEnterNameChange",
-        li_miao.main_event,
         function(context)
             return context:type() == "enter";
         end,
