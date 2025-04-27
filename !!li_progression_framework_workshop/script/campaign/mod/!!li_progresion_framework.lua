@@ -338,7 +338,7 @@ function LiProgression:get_stage()
     return current_stage;
 end
 
-function LiProgression:set_stage(stage)
+function LiProgression:_set_stage(stage)
     -- directly set a corruption stage if it was registered and call the callback on it, returning the new stage
     if self.REGISTERED_STAGES[stage] then
         self:log("Set stage " .. tostring(stage));
@@ -351,7 +351,7 @@ function LiProgression:set_stage(stage)
     end
 end
 
-function LiProgression:get_next_stage_callback()
+function LiProgression:_get_next_stage_callback()
     -- get the callback function for the next stage (who will decide when to advance and do the advancement itself), or nil if it doesn't exist
     local current_stage = self:get_stage();
     -- get the smallest stage greater than the current stage
@@ -380,9 +380,9 @@ function LiProgression:initialize()
             -- don't need to do <= since set stage will call the current stage's persistent callback factory
             self:_call_persistent_callback_factory(stage);
         end
-        self:set_stage(current_stage);
+        self:_set_stage(current_stage);
         -- also set progress to update
-        self:set_progress_percent(self:get_progress_percent());
+        self:_set_progress_percent(self:get_progress_percent());
         self:fire_event({ type = "init", stage = current_stage });
     end, 1.3, "Li_" .. self.shortname .. "_initialize");
     -- reload dilemma queue
@@ -477,7 +477,7 @@ function LiProgression:get_progress_percent()
     return progress_percent;
 end
 
-function LiProgression:set_progress_percent(percent)
+function LiProgression:_set_progress_percent(percent)
     -- set the current corruption stage
     if percent < 0 or percent > 100 then
         self:error("Attempt to set progress percent to " .. tostring(percent) .. " out of bounds");
@@ -505,7 +505,7 @@ function LiProgression:modify_progress_percent(percent, cause)
     end
     self:log("Change progress percent " ..
         tostring(current_percent) .. " to " .. tostring(new_percent) .. " cause " .. tostring(cause));
-    self:set_progress_percent(new_percent);
+    self:_set_progress_percent(new_percent);
 end
 
 function LiProgression:_update_progress_effects()
@@ -524,7 +524,7 @@ function LiProgression:_update_progress_effects()
 end
 
 function LiProgression:trigger_progression(context, is_human)
-    return self:set_progress_percent(100);
+    return self:_set_progress_percent(100);
 end
 
 function LiProgression:_call_progression_callback(context, is_human)
@@ -535,7 +535,7 @@ function LiProgression:_call_progression_callback(context, is_human)
         return false;
     end
     self:log("Progress reached 100, looking for next stage");
-    local callback, next_stage = self:get_next_stage_callback();
+    local callback, next_stage = self:_get_next_stage_callback();
     if callback ~= nil then
         self:log("Progression callback for stage " .. tostring(next_stage));
         callback(context, is_human);
@@ -552,11 +552,11 @@ function LiProgression:advance_stage(trait_name, next_stage)
     local prev_stage = self:get_stage();
     -- clear progress upon entering stage
     -- need to add some delay or it won't fire for some reason
-    local new_stage = self:set_stage(next_stage);
+    local new_stage = self:_set_stage(next_stage);
     self:log("Stage changed from " .. tostring(prev_stage) .. " to " .. tostring(new_stage));
     if new_stage ~= prev_stage then
         cm:callback(function()
-            self:set_progress_percent(0);
+            self:_set_progress_percent(0);
             self:fire_event({ type = "enter", stage = next_stage });
         end, 1);
     end
