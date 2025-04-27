@@ -1,4 +1,4 @@
-local version = "2.1.0";
+local version = "2.2.0";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
@@ -377,8 +377,6 @@ function LiProgression:initialize()
         for stage = 1, current_stage - 1 do
             -- unlock the previous stage art sets to allow variant selector to switch between them
             self:_unlock_art_set_stage(stage);
-            -- don't need to do <= since set stage will call the current stage's persistent callback factory
-            self:_call_persistent_callback_factory(stage);
         end
         self:_set_stage(current_stage);
         -- also set progress to update
