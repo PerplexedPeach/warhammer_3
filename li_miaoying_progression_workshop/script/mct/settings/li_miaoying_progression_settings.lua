@@ -13,6 +13,12 @@ progress_from_battle:set_default_value(100);
 progress_from_battle:slider_set_min_max(0, 100);
 progress_from_battle:slider_set_step_size(5);
 
+-- how long pregnancy lasts
+local progress_from_battle = cf:add_new_option("miao_pregnancy_period", "slider")
+progress_from_battle:set_default_value(3);
+progress_from_battle:slider_set_min_max(1, 5);
+progress_from_battle:slider_set_step_size(1);
+
 -- gaining from diplomacy
 local progress_from_nap = cf:add_new_option("miao_progress_nap", "slider")
 progress_from_nap:set_default_value(5);

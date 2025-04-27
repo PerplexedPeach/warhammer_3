@@ -4,7 +4,6 @@ local this_stage = 6;
 
 local get_bred_ability_name = "li_miaoying_get_bred";
 local provide_service_ability_name = "li_offer_any_service";
-local pregnancy_period = 3;
 local pregnancy_name = "li_miaoying_pregnant";
 local pregnancy_turn = "li_miaoying_pregnant_start_turn";
 local dilemma_name_prefix = "li_miaoying_bred_";
@@ -146,7 +145,7 @@ local function check_birth(context)
     end
 
     local impregnated_turn = cm:get_saved_value(pregnancy_turn) or 0;
-    if cm:turn_number() < impregnated_turn + pregnancy_period then
+    if cm:turn_number() < impregnated_turn + CFSettings.miao_pregnancy_period then
         return
     end
 
