@@ -1,7 +1,5 @@
-local trait_name = "li_trait_morathi_hot_clothing";
 local malus_trait_name = "li_trait_malus_morathi";
 -- for AI this stage gets rolled every turn
-local li_ai_corruption_chance = 15;
 local this_stage = 2;
 
 local malus_capture_mission_key = "li_morathi_progression_malus";
@@ -14,68 +12,21 @@ local malus_torture_start = "li_morathi_progression_malus_zeroth";
 local malus_first = "li_morathi_progression_malus_first";
 local malus_second = "li_morathi_progression_malus_second";
 local events = {
-    { ["sub"] = "li_morathi_progression_malus_first_sub", ["dom"] = "li_morathi_progression_malus_first_dom" },
+    { ["sub"] = "li_morathi_progression_malus_first_sub",  ["dom"] = "li_morathi_progression_malus_first_dom" },
     { ["sub"] = "li_morathi_progression_malus_second_sub", ["dom"] = "li_morathi_progression_malus_second_dom" },
 };
+local target = li_mor.malus;
 
 -- progression notification dilemma (choice of proceeding is to do previous quests or not)
-local progression_dilemma_name = "li_morathi_progression_malus_third";
-
 local progress_next_turn = "li_morathi_malus_progress_next_turn";
 
-local function sub_choice(loyalty_change)
-    li_mor:modify_sub_score(CFSettings.mor_sub_gain);
-    if loyalty_change then
-        li_mor:adjust_character_loyalty(-1);
-    end
-    li_mor:adjust_target_sub(li_mor.malus, -1);
-end
-
-local function dom_choice(loyalty_change)
-    li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
-    if loyalty_change then
-        li_mor:adjust_character_loyalty(1);
-    end
-    li_mor:adjust_target_sub(li_mor.malus, 1);
-end
-
-local function progression_callback(context, is_human)
-    if is_human then
-        li_mor:log("Human progression, trigger dilemma " .. progression_dilemma_name);
-        local delimma_choice_listener_name = progression_dilemma_name .. "_DilemmaChoiceMadeEvent";
-        -- using persist = true even for a delimma event in case they click on another delimma first
-        core:add_listener(
-            delimma_choice_listener_name,
-            "DilemmaChoiceMadeEvent",
-            function(context)
-                return context:dilemma() == progression_dilemma_name;
-            end,
-            function(context)
-                local choice = context:choice();
-                li_mor:log(progression_dilemma_name .. " choice " .. tostring(choice));
-                -- add sub/dom tracking here
-                if choice == 0 then
-                    sub_choice(false);
-                elseif choice == 1 then
-                    dom_choice(false);
-                end
-                li_mor:advance_stage(trait_name, this_stage);
-                core:remove_listener(delimma_choice_listener_name);
-            end,
-            true
-        );
-        cm:trigger_dilemma(li_mor:get_char():faction():name(), progression_dilemma_name);
-    else
-        -- if it's not the human
-        local rand = cm:random_number(100, 1);
-        li_mor:log("AI rolled " .. tostring(rand) .. " against chance to corrupt " .. li_ai_corruption_chance)
-        if rand <= li_ai_corruption_chance then
-            li_mor:advance_stage(trait_name, this_stage);
-        else
-            li_mor:fire_event({type="reject", stage=this_stage});
-        end
-    end
-end
+CFSettings.mor[this_stage] = {
+    dilemma_name = "li_morathi_progression_malus_third",
+    trait_name = "li_trait_morathi_hot_clothing",
+    this_stage = this_stage,
+    ai_corruption_chance = 15,
+    target = target,
+};
 
 local function trigger_malus_mission()
     -- cm:trigger_mission(mor:faction():name(), alith_anar_mission_key, true);
@@ -137,12 +88,13 @@ local function malus_capture_end(context)
     li_mor:log("successfully finished malus capture mission");
     -- confederate his entire faction; since they are dark evles they accept your rule nominally, but will likely rebel
     cm:set_saved_value(malus_capture_mission_finished_key, true);
-    --spawn this force as a guard against the player killing Malus and occupying his last settlement at the same time. kill them with notice supressed after confederation 
+    --spawn this force as a guard against the player killing Malus and occupying his last settlement at the same time. kill them with notice supressed after confederation
     local cqi_generated = nil;
-    cm:create_force_with_general("wh2_main_def_hag_graef", "", "wh3_main_combi_region_ancient_city_of_quintex", 74, 590, "general", "wh2_main_def_dreadlord_fem", "names_name_2147359621", "", "", "", false, 
-    function(cqi) 
-        cqi_generated = cqi;
-    end, true);
+    cm:create_force_with_general("wh2_main_def_hag_graef", "", "wh3_main_combi_region_ancient_city_of_quintex", 74, 590,
+        "general", "wh2_main_def_dreadlord_fem", "names_name_2147359621", "", "", "", false,
+        function(cqi)
+            cqi_generated = cqi;
+        end, true);
 
 
     -- confederate
@@ -166,7 +118,8 @@ local function keep_target_alive_for_mission(context)
         -- spawn alith with an army in his home province
         local spawn_region = "wh3_main_combi_region_hag_graef";
         local faction_name = li_mor.malus.faction;
-        local unit_list = "wh2_main_def_inf_shades_0,wh2_main_def_inf_shades_0,wh2_main_def_inf_shades_0,wh2_main_def_inf_shades_0,wh2_main_def_inf_har_ganeth_executioners_0,wh2_main_def_inf_har_ganeth_executioners_0,wh2_main_def_mon_black_dragon,wh2_main_def_inf_dreadspears_0,wh2_main_def_inf_dreadspears_0,wh2_main_def_cav_cold_one_knights_0,wh2_main_def_cav_cold_one_knights_0,wh2_main_def_cav_cold_one_knights_0,wh2_main_def_cav_cold_one_knights_0,wh2_main_def_art_reaper_bolt_thrower,wh2_main_def_art_reaper_bolt_thrower,wh2_main_def_cav_dark_riders_1,wh2_main_def_cav_dark_riders_1";
+        local unit_list =
+        "wh2_main_def_inf_shades_0,wh2_main_def_inf_shades_0,wh2_main_def_inf_shades_0,wh2_main_def_inf_shades_0,wh2_main_def_inf_har_ganeth_executioners_0,wh2_main_def_inf_har_ganeth_executioners_0,wh2_main_def_mon_black_dragon,wh2_main_def_inf_dreadspears_0,wh2_main_def_inf_dreadspears_0,wh2_main_def_cav_cold_one_knights_0,wh2_main_def_cav_cold_one_knights_0,wh2_main_def_cav_cold_one_knights_0,wh2_main_def_cav_cold_one_knights_0,wh2_main_def_art_reaper_bolt_thrower,wh2_main_def_art_reaper_bolt_thrower,wh2_main_def_cav_dark_riders_1,wh2_main_def_cav_dark_riders_1";
         li_mor:log("respawning Malus faction");
         li_mor:respawn_faction(spawn_region, faction_name, unit_list);
         malus = li_mor:get_target_character(li_mor.malus);
@@ -315,10 +268,10 @@ local function progress_to_this_stage_triggers()
                 li_mor:log(dilemma_name .. " choice " .. tostring(choice));
                 -- add sub/dom tracking here
                 if choice == 0 then
-                    sub_choice(true);
+                    li_mor:sub_choice(target, true);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["sub"]);
                 elseif choice == 1 then
-                    dom_choice(true);
+                    li_mor:dom_choice(target, true);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["dom"]);
                 end
                 -- trigger next mission
@@ -344,10 +297,10 @@ local function progress_to_this_stage_triggers()
                 li_mor:log(dilemma_name .. " choice " .. tostring(choice));
                 -- add sub/dom tracking here
                 if choice == 0 then
-                    sub_choice(true);
+                    li_mor:sub_choice(target, true);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), events[2]["sub"]);
                 elseif choice == 1 then
-                    dom_choice(true);
+                    li_mor:dom_choice(target, true);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), events[2]["dom"]);
                 end
                 -- progression on the next turn
@@ -360,12 +313,13 @@ local function progress_to_this_stage_triggers()
 end
 
 local function broadcast_self()
-
     local name = "second"; -- use as the key for everything
-    li_mor:stage_register(name, this_stage, progression_callback);
+    li_mor:stage_register(name, this_stage, function(context, is_human)
+        li_mor:subdom_progression_callback(context, is_human, CFSettings.mor[this_stage]);
+    end);
 
     li_mor:add_listener(
-        "MorProgressionTrigger".. this_stage,
+        "MorProgressionTrigger" .. this_stage,
         function(context)
             return (context:type() == "enter" or context:type() == "init") and context:stage() == this_stage - 1;
         end,
@@ -374,7 +328,6 @@ local function broadcast_self()
         end,
         false -- not persistent! This is important to avoid adding duplicate listeners inside
     );
-
 end
 
 function Debug_malus_capture_start()

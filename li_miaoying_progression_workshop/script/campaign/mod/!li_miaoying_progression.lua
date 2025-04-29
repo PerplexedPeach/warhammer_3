@@ -10,6 +10,8 @@ local names_name_id = "190911577";
 ---@type LiProgression
 li_miao = LiProgression:new("miaoying", miao_faction, miao_subtype, miao_art_set, LI_MIAOYING_MAIN_EVENT, confed_factions, names_name_id);
 
+CFSettings["miao"] = {};
+
 cm:add_first_tick_callback(function() li_miao:initialize() end);
 
 

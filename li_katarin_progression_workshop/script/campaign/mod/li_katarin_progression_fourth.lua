@@ -1,7 +1,10 @@
-local trait_name = "li_trait_corrupt_collar";
-local dilemma_name = "li_mark_tzesla_seal";
-local li_ai_corruption_chance = 80;
 local this_stage = 4;
+CFSettings.kat[this_stage] = {
+    dilemma_name = "li_mark_tzesla_seal", 
+    trait_name = "li_trait_corrupt_collar",
+    this_stage = this_stage, 
+    ai_corruption_chance = 80
+};
 
 -- city to dilemma title mapping
 local city_to_dilemma = {
@@ -45,7 +48,8 @@ local function visit_major_kislev_city(context)
     local region_name = region:name();
     local event_name = city_to_dilemma[region_name];
     -- is there an event registered
-    li_kat:log("Starting a turn in settlement of region " .. region_name .. " associated with event " .. tostring(event_name));
+    li_kat:log("Starting a turn in settlement of region " ..
+    region_name .. " associated with event " .. tostring(event_name));
     if event_name == nil or cm:get_saved_value(event_name) then
         return;
     end
@@ -62,48 +66,13 @@ local function visit_major_kislev_city(context)
     cm:set_saved_value(events_seen_name, events_seen + 1);
 end
 
-local function progression_callback(context, is_human)
-    -- dilemma for choosing to accept or reject the gift
-    if is_human then
-        li_kat:log("Human progression, trigger dilemma " .. dilemma_name);
-        cm:trigger_dilemma(li_kat:get_char():faction():name(), dilemma_name);
-        local delimma_choice_listener_name = dilemma_name .. "_DilemmaChoiceMadeEvent";
-        -- using persist = true even for a delimma event in case they click on another delimma first
-        core:add_listener(
-            delimma_choice_listener_name,
-            "DilemmaChoiceMadeEvent",
-            function(context)
-                return context:dilemma() == dilemma_name;
-            end,
-            function(context)
-                local choice = context:choice();
-                li_kat:log(dilemma_name .. " choice " .. tostring(choice));
-                if choice == 0 then
-                    li_kat:advance_stage(trait_name, this_stage);
-                else
-                    li_kat:fire_event({type="reject", stage=this_stage});
-                end
-                core:remove_listener(delimma_choice_listener_name);
-            end,
-            true
-        );
-    else
-        -- if it's not the human
-        local rand = cm:random_number(100, 1);
-        li_kat:log("AI rolled " .. tostring(rand) .. " against chance to corrupt " .. li_ai_corruption_chance)
-        if rand <= li_ai_corruption_chance then
-            li_kat:advance_stage(trait_name, this_stage);
-        else
-            li_kat:fire_event({type="reject", stage=this_stage});
-        end
-    end
-end
-
 local function broadcast_self()
     -- command script will define API to register stage
-    local name = "fourth";  -- use as the key for everything
-    li_kat:stage_register(name, this_stage, progression_callback);
-
+    local name = "fourth"; -- use as the key for everything
+    li_kat:stage_register(name, this_stage,
+        function(context, is_human)
+            li_kat:simple_progression_callback(context, is_human, CFSettings.kat[this_stage])
+        end);
     -- event up as we visit Kislev cities
     core:add_listener(
         "FactionTurnStartKatarinStage3Events",

@@ -49,7 +49,8 @@ local function progression_response_callback(context, target_name)
     -- trigger dilemmas for target to respond to Miao's choice
     local miao_response = context:type();
     li_miao:log("Miao response type " .. miao_response);
-    if miao_response == "reject" then
+    -- only care about accept or reject
+    if miao_response ~= "reject" or miao_response ~= "accept" then
         return
     end
 
@@ -61,6 +62,7 @@ local function progression_response_callback(context, target_name)
 
     local stage = context:stage();
     -- trigger dilemma with choices
+    -- if it's accept then just display this for the target
     local response_dilemma = response_dilemma_base .. miao_response .. "_" .. tostring(stage);
     li_miao:log(target_name .. " responds to Miao's choice " .. miao_response .. " with dilemma " .. response_dilemma);
     local target = get_char(target_table);

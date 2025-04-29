@@ -1,7 +1,5 @@
-local trait_name = "li_trait_morathi_marked_body";
 local teclis_trait_name = "li_trait_teclis_morathi";
 -- for AI this stage gets rolled every turn
-local li_ai_corruption_chance = 15;
 local this_stage = 4;
 
 local missions = { "li_morathi_teclis_convene", "li_morathi_progression_fourth_battle" };
@@ -15,65 +13,21 @@ local set_piece_battle_key = "li_morathi_progression_fourth_battle";
 
 local shrine_of_asuryan_region = "wh3_main_combi_region_shrine_of_asuryan";
 -- the progression dilemma is the last dilemma
-local progression_dilemma_name = dilemmas[#dilemmas];
 
 local enter_mission_next_turn = "li_morathi_teclis_enter_mission_next_turn";
 local confed_next_turn = "li_morathi_teclis_confed_next_turn";
 local progress_next_turn = "li_morathi_teclis_progress_next_turn";
 
-local function sub_choice(loyalty_change)
-    li_mor:modify_sub_score(CFSettings.mor_sub_gain);
-    if loyalty_change then
-        li_mor:adjust_character_loyalty(-1);
-    end
-    li_mor:adjust_target_sub(li_mor.teclis, -1);
-end
+local target = li_mor.teclis;
 
-local function dom_choice(loyalty_change)
-    li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
-    if loyalty_change then
-        li_mor:adjust_character_loyalty(1);
-    end
-    li_mor:adjust_target_sub(li_mor.teclis, 1);
-end
+CFSettings.mor[this_stage] = {
+    dilemma_name = dilemmas[#dilemmas],
+    trait_name = "li_trait_morathi_marked_body",
+    this_stage = this_stage,
+    ai_corruption_chance = 15,
+    target = target,
+};
 
-local function progression_callback(context, is_human)
-    if is_human then
-        li_mor:log("Human progression, trigger dilemma " .. progression_dilemma_name);
-        local delimma_choice_listener_name = progression_dilemma_name .. "_DilemmaChoiceMadeEvent";
-        -- using persist = true even for a delimma event in case they click on another delimma first
-        core:add_listener(
-            delimma_choice_listener_name,
-            "DilemmaChoiceMadeEvent",
-            function(context)
-                return context:dilemma() == progression_dilemma_name;
-            end,
-            function(context)
-                local choice = context:choice();
-                li_mor:log(progression_dilemma_name .. " choice " .. tostring(choice));
-                -- add sub/dom tracking here
-                if choice == 0 then
-                    sub_choice(false);
-                elseif choice == 1 then
-                    dom_choice(false);
-                end
-                li_mor:advance_stage(trait_name, this_stage);
-                core:remove_listener(delimma_choice_listener_name);
-            end,
-            true
-        );
-        cm:trigger_dilemma(li_mor:get_char():faction():name(), progression_dilemma_name);
-    else
-        -- if it's not the human
-        local rand = cm:random_number(100, 1);
-        li_mor:log("AI rolled " .. tostring(rand) .. " against chance to corrupt " .. li_ai_corruption_chance)
-        if rand <= li_ai_corruption_chance then
-            li_mor:advance_stage(trait_name, this_stage);
-        else
-            li_mor:fire_event({ type = "reject", stage = this_stage });
-        end
-    end
-end
 
 local function teclis_transaction()
     local mor = li_mor:get_char();
@@ -180,12 +134,10 @@ local function teclis_distraction_battle_end(context)
             -- add sub/dom tracking here
             -- adds 2 sub/dom points
             if choice == 0 then
-                sub_choice(false);
-                sub_choice(false);
+                li_mor:sub_choice(target, false);
                 cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["sub"]);
             elseif choice == 1 then
-                dom_choice(false);
-                dom_choice(false);
+                li_mor:dom_choice(target, false);
                 cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["dom"]);
             end
             -- progression on the next turn
@@ -383,7 +335,10 @@ end
 
 local function broadcast_self()
     local name = "fourth"; -- use as the key for everything
-    li_mor:stage_register(name, this_stage, progression_callback);
+    li_mor:stage_register(name, this_stage, function(context, is_human)
+        li_mor:subdom_progression_callback(context, is_human, CFSettings.mor[this_stage]);
+    end); 
+
     li_mor:add_listener(
         "MorProgressionTrigger".. this_stage,
         function(context)

@@ -45,16 +45,18 @@ local function progression_callback(context, is_human)
                     li_mor:modify_sub_score(CFSettings.mor_sub_gain);
                     li_mor:adjust_character_loyalty(-1);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), dilemma_sub_name);
+                    li_mor:fire_event({ type = "accept", stage = this_stage });
                     li_mor:advance_stage(trait_name, this_stage);
                 elseif choice == 1 then
                     li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
                     li_mor:adjust_character_loyalty(1);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), dilemma_dom_name);
+                    li_mor:fire_event({ type = "accept", stage = this_stage });
                     li_mor:advance_stage(trait_name, this_stage);
                 elseif choice == 2 then
                     li_mor:adjust_character_loyalty(2);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), dilemma_reject_name);
-                    li_mor:fire_event({type="reject", stage=this_stage});
+                    li_mor:fire_event({ type = "reject", stage = this_stage });
                 end
                 core:remove_listener(delimma_choice_listener_name);
             end,
@@ -72,9 +74,11 @@ local function progression_callback(context, is_human)
             else
                 li_mor:modify_sub_score(-CFSettings.mor_dom_gain);
             end
+            li_mor:fire_event({ type = "accept", stage = this_stage });
             li_mor:advance_stage(trait_name, this_stage);
         else
-            li_mor:fire_event({type="reject", stage=this_stage});
+            li_mor:fire_event({ type = "reject", stage = this_stage });
+            li_mor:modify_progress_percent(-CFSettings.progression_rejection_progress_decrease, "dilemma rejection");
         end
     end
 end

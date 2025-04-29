@@ -1,56 +1,5 @@
 local subdom_effect_bundle = "li_morathi_subdom";
 
-morathi_sub = {
-	ui_key = "posession_orb",
-    dom_button_inner = "mushroom_button",
-	dom_button = "malus_potion",
-    sub_button_inner = "tzarkan_button",
-    sub_button = "tzarkan_potion",
-	resource_key = "li_morathi_sub",
-	-- sanity_per_turn = 1,
-	-- garrison_decline = -1,
-	-- medicine_decline = -10,
-
-	-- elixir_cost = {
-	-- 	current = 1,
-	-- 	base = 1,
-	-- 	easy = 200,
-	-- 	normal = 400,
-	-- 	hard = 500,
-	-- 	very_hard = 600,
-	-- 	mod = 0.04
-	-- },
-
-	factors = {
-		-- deterioration = "wh2_dlc14_resource_factor_sanity_deterioration",
-		-- in_settlement = "wh2_dlc14_resource_factor_sanity_in_settlement",
-		-- medication = "wh2_dlc14_resource_factor_sanity_medication",
-		-- ability = "wh2_dlc14_resource_factor_sanity_battle_ability"
-        dilemma = "li_morathi_sub_dilemma",
-        sync = "li_morathi_sub_sync",
-	},
-
-    -- TODO abilities in battle that affects sub/dom
-	abilities = {
-		"wh2_dlc14_lord_abilities_tzarkan_spite",
-		"wh2_dlc14_lord_abilities_tzarkan"
-	},
-
-	effects = {
-		-- ai = "wh2_dlc14_pooled_resource_malus_sanity_ai",
-		-- sanity_7 = "wh2_dlc14_pooled_resource_malus_sanity_7",
-		-- sanity_5 = "wh2_dlc14_pooled_resource_malus_sanity_5",
-		-- sanity_6 = "wh2_dlc14_pooled_resource_malus_sanity_6",
-		-- sanity_1 = "wh2_dlc14_pooled_resource_malus_sanity_1",
-		-- sanity_4_character = "wh2_dlc14_pooled_resource_malus_sanity_4_character",
-		-- sanity_5_character = "wh2_dlc14_pooled_resource_malus_sanity_5_character",
-		-- sanity_6_character = "wh2_dlc14_pooled_resource_malus_sanity_6_character",
-		-- sanity_7_character = "wh2_dlc14_pooled_resource_malus_sanity_7_character"
-	},
-
-	-- ability_cost = 2
-}
-
 local function should_create_ui()
     local mor = li_mor:get_char();
     if not mor then
@@ -138,10 +87,10 @@ function morathi_sub:add_listeners()
 		-- 	local malus_character = faction:faction_leader();
 
 		-- 	if malus_character:in_settlement() == true then
-		-- 		self:modify_sub(self.factors.in_settlement, self.garrison_decline);
+		-- 		li_mor:modify_sub(self.garrison_decline, self.factors.in_settlement);
 		-- 	end
 
-		-- 	self:modify_sub(self.factors.deterioration, self.sanity_per_turn);
+		-- 	li_mor:modify_sub_score(self.sanity_per_turn, self.factors.deterioration);
 
 			self:update_effects();
 		end,
@@ -183,7 +132,7 @@ function morathi_sub:add_listeners()
 		function(context)
 			local faction = cm:model():faction_for_command_queue_index(context:faction_cqi());
             li_mor:log("Dom button clicked");
-            self:modify_sub(self.factors.sync, -1);
+            li_mor:modify_sub_score(-1, self.factors.sync);
 			self:update_effects();
 
 			-- self:modify_sanity(self.factors.medication, self.medicine_decline);
@@ -227,8 +176,7 @@ function morathi_sub:add_listeners()
         function(context)
             local faction = cm:model():faction_for_command_queue_index(context:faction_cqi());
             li_mor:log("Sub button clicked");
-            self:modify_sub(self.factors.sync, 1);
-            self:update_effects();
+            li_mor:modify_sub_score(1, self.factors.sync);
         end,
         true
     );
@@ -275,11 +223,6 @@ function morathi_sub:update_effects()
 	self:update_ui();
 end
 
-function morathi_sub:modify_sub(factor, amount)
-    local faction = li_mor:get_char():faction();
-	cm:faction_add_pooled_resource(faction:name(), self.resource_key, factor, amount);
-    li_mor:modify_sub_score(amount);
-end
 
 function morathi_sub:update_ui()
 

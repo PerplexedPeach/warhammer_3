@@ -1,4 +1,4 @@
-local version = "2.3.1";
+local version = "2.4.0";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
@@ -641,4 +641,51 @@ function LiProgression:respawn_faction(start_region, faction_name, unit_list)
         end,
         false
     );
+end
+
+---Simple dilemma based progression callback for use with register_stage
+---@param is_human boolean true if the faction is human, false if AI
+---@param data table Table containing the
+---@param data.dilemma_name string Dilemma key in database to trigger
+---@param data.trait_name string Trait key to add to the character if the dilemma is accepted
+---@param data.this_stage integer Stage to advance to if the dilemma is accepted
+---@param data.ai_corruption_chance number Chance for the AI to accept the gift (0-100)
+function LiProgression:simple_progression_callback(context, is_human, data)
+    -- dilemma for choosing to accept or reject the gift
+    if is_human then
+        self:log("Human progression, trigger dilemma " .. data.dilemma_name);
+        cm:trigger_dilemma(self:get_char():faction():name(), data.dilemma_name);
+        local delimma_choice_listener_name = data.dilemma_name .. "_DilemmaChoiceMadeEvent";
+        -- using persist = true even for a delimma event in case they click on another delimma first
+        core:add_listener(
+            delimma_choice_listener_name,
+            "DilemmaChoiceMadeEvent",
+            function(context)
+                return context:dilemma() == data.dilemma_name;
+            end,
+            function(context)
+                local choice = context:choice();
+                self:log(data.dilemma_name .. " choice " .. tostring(choice));
+                if choice == 0 then
+                    self:fire_event({ type = "accept", stage = data.this_stage });
+                    self:advance_stage(data.trait_name, data.this_stage);
+                else
+                    self:fire_event({ type = "reject", stage = data.this_stage });
+                end
+                core:remove_listener(delimma_choice_listener_name);
+            end,
+            true
+        );
+    else
+        -- if it's not the human
+        local rand = cm:random_number(100, 1);
+        self:log("AI rolled " .. tostring(rand) .. " against chance to corrupt " .. data.ai_corruption_chance)
+        if rand <= data.ai_corruption_chance then
+            self:fire_event({ type = "accept", stage = data.this_stage });
+            self:advance_stage(data.trait_name, data.this_stage);
+        else
+            self:fire_event({ type = "reject", stage = data.this_stage });
+            self:modify_progress_percent(-CFSettings.progression_rejection_progress_decrease, "dilemma rejection");
+        end
+    end
 end

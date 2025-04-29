@@ -8,27 +8,74 @@ local names_name_id = "1248512";
 ---@class LiProgression
 li_mor = LiProgression:new("morathi", faction, subtype, art_set, LI_MAIN_EVENT, confed_factions, names_name_id);
 
+CFSettings["mor"] = {};
+
+morathi_sub = {
+	ui_key = "posession_orb",
+    dom_button_inner = "mushroom_button",
+	dom_button = "malus_potion",
+    sub_button_inner = "tzarkan_button",
+    sub_button = "tzarkan_potion",
+	resource_key = "li_morathi_sub",
+	-- sanity_per_turn = 1,
+	-- garrison_decline = -1,
+	-- medicine_decline = -10,
+
+	factors = {
+		-- deterioration = "wh2_dlc14_resource_factor_sanity_deterioration",
+		-- in_settlement = "wh2_dlc14_resource_factor_sanity_in_settlement",
+		-- medication = "wh2_dlc14_resource_factor_sanity_medication",
+		-- ability = "wh2_dlc14_resource_factor_sanity_battle_ability"
+        dilemma = "li_morathi_sub_dilemma",
+        sync = "li_morathi_sub_sync",
+	},
+
+    -- TODO abilities in battle that affects sub/dom
+	abilities = {
+		"wh2_dlc14_lord_abilities_tzarkan_spite",
+		"wh2_dlc14_lord_abilities_tzarkan"
+	},
+
+	effects = {
+		-- ai = "wh2_dlc14_pooled_resource_malus_sanity_ai",
+		-- sanity_7 = "wh2_dlc14_pooled_resource_malus_sanity_7",
+		-- sanity_5 = "wh2_dlc14_pooled_resource_malus_sanity_5",
+		-- sanity_6 = "wh2_dlc14_pooled_resource_malus_sanity_6",
+		-- sanity_1 = "wh2_dlc14_pooled_resource_malus_sanity_1",
+		-- sanity_4_character = "wh2_dlc14_pooled_resource_malus_sanity_4_character",
+		-- sanity_5_character = "wh2_dlc14_pooled_resource_malus_sanity_5_character",
+		-- sanity_6_character = "wh2_dlc14_pooled_resource_malus_sanity_6_character",
+		-- sanity_7_character = "wh2_dlc14_pooled_resource_malus_sanity_7_character"
+	},
+
+	-- ability_cost = 2
+};
+
 local subbiness_key = "li_morathi_subdom";
 function li_mor:sub_score()
     -- integer of how submissive the character has become with positive values indicating more sub
     return cm:get_saved_value(subbiness_key) or 0;
 end
 
-function li_mor:modify_sub_score(modifier)
+function li_mor:modify_sub_score(modifier, factor)
+    factor = factor or morathi_sub.factors.dilemma;
+    local faction = li_mor:get_char():faction();
+	cm:faction_add_pooled_resource(faction:name(), morathi_sub.resource_key, factor, modifier);
     cm:set_saved_value(subbiness_key, li_mor:sub_score() + modifier);
+    morathi_sub:update_effects();
 end
 
 -- common functions for each target
 
 ---Retrieve target character of some stage
----@param target any
+---@param target table
 ---@return CHARACTER_SCRIPT_INTERFACE|nil
 function li_mor:get_target_character(target)
     return self:get_character_all(target.subtype, target.confed_factions);
 end
 
 ---Get the sub/dom score of a target
----@param target any
+---@param target table
 ---@return integer
 function li_mor:get_target_sub(target)
     local mor = li_mor:get_char();
@@ -47,7 +94,7 @@ function li_mor:get_target_sub(target)
 end
 
 ---Adjust the sub/dom score of a target, affecting the corresponding traits in both Morathi and target
----@param target any
+---@param target table
 ---@param modifier integer
 function li_mor:adjust_target_sub(target, modifier)
     local mor = li_mor:get_char();
@@ -65,6 +112,68 @@ function li_mor:adjust_target_sub(target, modifier)
     end
 end
 
+---Make a choice in the sub/dom dilemma
+---@param target table target character
+---@param loyalty_change boolean whether to change the loyalty of the target character
+function li_mor:sub_choice(target, loyalty_change)
+    self:log("Made sub choice for " .. target.subtype);
+    self:modify_sub_score(CFSettings.mor_sub_gain);
+    if loyalty_change then
+        self:adjust_character_loyalty(-1);
+    end
+    self:adjust_target_sub(target, -1);
+end
+
+function li_mor:dom_choice(target, loyalty_change)
+    self:log("Made dom choice for " .. target.subtype);
+    self:modify_sub_score(-CFSettings.mor_dom_gain);
+    if loyalty_change then
+        self:adjust_character_loyalty(1);
+    end
+    self:adjust_target_sub(target, 1);
+end
+
+function li_mor:subdom_progression_callback(context, is_human, data)
+    if is_human then
+        self:log("Human progression, trigger dilemma " .. data.dilemma_name);
+        local delimma_choice_listener_name = data.dilemma_name .. "_DilemmaChoiceMadeEvent";
+        -- using persist = true even for a delimma event in case they click on another delimma first
+        core:add_listener(
+            delimma_choice_listener_name,
+            "DilemmaChoiceMadeEvent",
+            function(context)
+                return context:dilemma() == data.dilemma_name;
+            end,
+            function(context)
+                local choice = context:choice();
+                self:log(data.dilemma_name .. " choice " .. tostring(choice));
+                -- add sub/dom tracking here
+                if choice == 0 then
+                    self:sub_choice(data.target, false);
+                elseif choice == 1 then
+                    self:dom_choice(data.target, false);
+                end
+                self:fire_event({ type = "accept", stage = data.this_stage });
+                self:advance_stage(data.trait_name, data.this_stage);
+                core:remove_listener(delimma_choice_listener_name);
+            end,
+            true
+        );
+        cm:trigger_dilemma(self:get_char():faction():name(), data.dilemma_name);
+    else
+        -- if it's not the human
+        local rand = cm:random_number(100, 1);
+        self:log("AI rolled " .. tostring(rand) .. " against chance to corrupt " .. data.ai_corruption_chance)
+        if rand <= data.ai_corruption_chance then
+            self:fire_event({ type = "accept", stage = data.this_stage });
+            self:advance_stage(data.trait_name, data.this_stage);
+        else
+            self:fire_event({ type = "reject", stage = data.this_stage });
+            self:modify_progress_percent(-CFSettings.progression_rejection_progress_decrease, "dilemma rejection");
+        end
+    end
+end
+
 -- Alith Anar ---------------
 -----------------------------
 li_mor.alith_anar = {
@@ -72,7 +181,7 @@ li_mor.alith_anar = {
     ["faction"] = "wh2_main_hef_nagarythe",
     ["confed_factions"] = { faction, "wh2_main_hef_nagarythe", "wh2_main_hef_eataine",
         "wh2_main_hef_order_of_loremasters", "wh2_main_hef_avelorn", "wh2_dlc15_hef_imrik",
-        "wh2_twa03_def_rakarth" };
+        "wh2_twa03_def_rakarth" },
     -- TODO
     ["morathi_sub"] = nil,
     ["morathi_dom"] = nil,
@@ -86,7 +195,7 @@ li_mor.malus = {
     ["faction"] = "wh2_main_def_hag_graef",
     ["confed_factions"] = { faction, "wh2_main_def_hag_graef", "wh2_main_def_cult_of_pleasure",
         "wh2_main_def_dark_elves", "wh2_main_def_hag_graef", "wh2_main_def_naggarond",
-        "wh2_twa03_def_rakarth", "wh2_main_def_blood_hall_coven" };
+        "wh2_twa03_def_rakarth", "wh2_main_def_blood_hall_coven" },
     ["morathi_sub"] = "li_morathi_malus_sub",
     ["morathi_dom"] = "li_morathi_malus_dom",
     ["sub"] = "li_malus_morathi_sub",
@@ -108,8 +217,9 @@ li_mor.nkari = {
 li_mor.teclis = {
     ["subtype"] = "wh2_main_hef_teclis",
     ["faction"] = "wh2_main_hef_order_of_loremasters",
-    ["confed_factions"] = { faction, "wh2_main_hef_order_of_loremasters", "wh2_main_hef_nagarythe", "wh2_main_hef_eataine",
-     "wh2_main_hef_avelorn", "wh2_dlc15_hef_imrik", "wh2_twa03_def_rakarth" },
+    ["confed_factions"] = { faction, "wh2_main_hef_order_of_loremasters", "wh2_main_hef_nagarythe",
+        "wh2_main_hef_eataine",
+        "wh2_main_hef_avelorn", "wh2_dlc15_hef_imrik", "wh2_twa03_def_rakarth" },
     ["morathi_sub"] = "li_trait_morathi_teclis_sub",
     ["morathi_dom"] = "li_trait_morathi_teclis_dom",
     ["sub"] = "li_trait_teclis_morathi_sub",
@@ -152,7 +262,7 @@ end
 ---@param cqi_generated string|nil generated CQI of the force returned by the success callback of create_force_with_general
 ---@param delay_s number delay in seconds
 function li_mor:delayed_kill_cqi(cqi_generated, delay_s)
-    cm:callback(function() 
+    cm:callback(function()
         if cqi_generated ~= nil then
             li_mor:log("killing temp spawned force");
             cm:disable_event_feed_events(true, "wh_event_category_character", "", "")
