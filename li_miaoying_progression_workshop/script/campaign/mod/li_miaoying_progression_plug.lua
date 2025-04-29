@@ -73,7 +73,7 @@ local function get_bred(opponent_faction_name)
     end
     -- switch to her pregnant model
     li_miao:log("Impregnated by " .. opponent_faction_name);
-    if not Li_MIAOYING_DISABLE_VISIBLE_PREGNANCY then
+    if CFSettings.miao_visible_pregnancy then
         li_miao:switch_art_set_stage(this_stage + 1);
     end
 end
@@ -96,7 +96,7 @@ local function give_birth(bred_tier, choice)
     cm:add_unit_to_faction_mercenary_pool(character:faction(), birthed_unit[1], "renown", birthed_num, 20, birthed_num, 1,
         "", "", "", true, birthed_unit[2]);
     -- switch back to normal model
-    if not Li_MIAOYING_DISABLE_VISIBLE_PREGNANCY then
+    if CFSettings.miao_visible_pregnancy then
         li_miao:switch_art_set_stage(this_stage);
     end
 end
@@ -218,7 +218,7 @@ local function broadcast_self()
             if bred_times > 0 then
                 li_miao:change_title(this_stage + bred_tier);
             end
-            if not Li_MIAOYING_DISABLE_VISIBLE_PREGNANCY then
+            if CFSettings.miao_visible_pregnancy then
                 if cm:get_saved_value(pregnancy_name) then
                     li_miao:switch_art_set_stage(this_stage + 1);
                 else

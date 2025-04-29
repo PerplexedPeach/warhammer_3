@@ -59,7 +59,7 @@ local function adapt_province(province, adaption_level)
         return sla_corr;
     end
 
-    if cm:get_saved_value(ignore_adaptation) then
+    if cm:get_saved_value(ignore_adaptation) or not CFSettings.miao_adapt_to_corruption then
         return sla_corr;
     end
 
@@ -79,7 +79,7 @@ local function adapt_all_provinces(adaption_level)
     -- adjust every owned province
     local faction = li_miao:get_char():faction();
     local province_list = faction:provinces();
-    local should_ignore = cm:get_saved_value(ignore_adaptation);
+    local should_ignore = cm:get_saved_value(ignore_adaptation) or not CFSettings.miao_adapt_to_corruption;
     if should_ignore then
         li_miao:log("Ignoring corruption adaptation");
     else
@@ -141,3 +141,28 @@ local function broadcast_self()
 end
 
 cm:add_first_tick_callback(function() broadcast_self() end);
+
+local function setup_banner_getting_via_dilemma(dilemma_name, min_turn_refire, additional_checks)
+    local min_turn_refire = min_turn_refire or absurdly_high_turn_number;
+    core:add_listener(
+        "Miao_Compendium_Corruption_Listener" .. dilemma_name,
+        "FactionTurnStart",
+        function(context)
+          return context:faction():name() == li_miao:get_char():faction():name();
+        end,
+        function(context)
+            if context:faction():is_human() then
+                local last_turn_fired = cm:get_saved_value(dilemma_name) or -absurdly_high_turn_number;
+                local turn = cm:turn_number();
+                if last_turn_fired + min_turn_refire > turn then
+                    return
+                end
+                pp_log("firing or " .. dilemma_name);
+                cm:trigger_dilemma(li_miao:get_char():faction():name(), dilemma_name);
+                li_miao:fire_submod_event(dilemma_name);
+                cm:set_saved_value(dilemma_name, turn);
+            end
+        end,
+        true
+  );
+end

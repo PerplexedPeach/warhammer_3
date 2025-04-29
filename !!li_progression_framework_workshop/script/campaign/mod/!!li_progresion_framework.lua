@@ -1,4 +1,4 @@
-local version = "2.2.0";
+local version = "2.3.1";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
@@ -6,7 +6,11 @@ local progress_effect = "li_effect_progress";
 
 -- load settings and keep setting updated
 local mod_name = "li_cf";
+
+-- annotate this as a global variable so it can be used in other files
+---@type table<string, any>
 CFSettings = {};
+
 core:add_listener(
     "ProgressionFrameworkSettingsInit",
     "MctInitialized",
@@ -214,7 +218,7 @@ function LiProgression:get_character_all(subtype, factions_to_consider)
         end
     end
 
-    self:error("Could not find character " .. subtype);
+    self:error("Could not find character " .. tostring(subtype));
     return nil;
 end
 
