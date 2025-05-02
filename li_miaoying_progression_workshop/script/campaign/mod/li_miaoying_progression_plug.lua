@@ -30,8 +30,6 @@ local function birth_tier_for_num_times(bred_times)
 end
 
 local function progression_callback(context, is_human)
-    -- there's no choice here, so always get the chain
-    Attach_miao_chains();
     -- dilemma for choosing to accept or reject the gift
     if is_human then
         li_miao:log("Human progression, trigger dilemma " .. dilemma_name);
@@ -205,6 +203,18 @@ local function broadcast_self()
     -- command script will define API to register stage
     li_miao:stage_register("plug", this_stage, progression_callback);
     li_miao:stage_register("plug_preg", this_stage + 1, nil); -- nil callback so you can't naturally advance to it
+
+    -- attach chains when first entering stage 6
+    li_miao:add_listener(
+        "MiaoAttachChains",
+        function(context)
+            return context:type() == "enter" and context:stage() == this_stage;
+        end,
+        function(context)
+            Attach_miao_chains();
+        end,
+        false -- not persistent! This is important to avoid adding duplicate listeners inside
+    );
 
     li_miao:add_listener(
         "MiaoEnterAdvancedPreg",

@@ -1,4 +1,4 @@
-local version = "2.4.0";
+local version = "2.4.1";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
