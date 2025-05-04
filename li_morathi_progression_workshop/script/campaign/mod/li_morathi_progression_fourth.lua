@@ -18,14 +18,14 @@ local enter_mission_next_turn = "li_morathi_teclis_enter_mission_next_turn";
 local confed_next_turn = "li_morathi_teclis_confed_next_turn";
 local progress_next_turn = "li_morathi_teclis_progress_next_turn";
 
-local target = li_mor.teclis;
+local target_table = li_mor.teclis;
 
 CFSettings.mor[this_stage] = {
     dilemma_name = dilemmas[#dilemmas],
     trait_name = "li_trait_morathi_marked_body",
     this_stage = this_stage,
     ai_corruption_chance = 15,
-    target = target,
+    target = target_table,
 };
 
 
@@ -110,7 +110,7 @@ local function teclis_distraction_battle_end(context)
     end
 
     local mor = li_mor:get_char();
-    local target = li_mor:get_target_character(li_mor.teclis);
+    local target = li_mor:get_target_character(target_table);
     if mor == nil or target == nil then
         return;
     end
@@ -134,10 +134,10 @@ local function teclis_distraction_battle_end(context)
             -- add sub/dom tracking here
             -- adds 2 sub/dom points
             if choice == 0 then
-                li_mor:sub_choice(target, false);
+                li_mor:sub_choice(target_table, false);
                 cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["sub"]);
             elseif choice == 1 then
-                li_mor:dom_choice(target, false);
+                li_mor:dom_choice(target_table, false);
                 cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["dom"]);
             end
             -- progression on the next turn

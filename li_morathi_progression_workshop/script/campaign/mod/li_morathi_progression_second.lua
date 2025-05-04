@@ -15,7 +15,7 @@ local events = {
     { ["sub"] = "li_morathi_progression_malus_first_sub",  ["dom"] = "li_morathi_progression_malus_first_dom" },
     { ["sub"] = "li_morathi_progression_malus_second_sub", ["dom"] = "li_morathi_progression_malus_second_dom" },
 };
-local target = li_mor.malus;
+local target_table = li_mor.malus;
 
 -- progression notification dilemma (choice of proceeding is to do previous quests or not)
 local progress_next_turn = "li_morathi_malus_progress_next_turn";
@@ -25,7 +25,7 @@ CFSettings.mor[this_stage] = {
     trait_name = "li_trait_morathi_hot_clothing",
     this_stage = this_stage,
     ai_corruption_chance = 15,
-    target = target,
+    target = target_table,
 };
 
 local function trigger_malus_mission()
@@ -268,10 +268,10 @@ local function progress_to_this_stage_triggers()
                 li_mor:log(dilemma_name .. " choice " .. tostring(choice));
                 -- add sub/dom tracking here
                 if choice == 0 then
-                    li_mor:sub_choice(target, true);
+                    li_mor:sub_choice(target_table, true);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["sub"]);
                 elseif choice == 1 then
-                    li_mor:dom_choice(target, true);
+                    li_mor:dom_choice(target_table, true);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["dom"]);
                 end
                 -- trigger next mission
@@ -297,10 +297,10 @@ local function progress_to_this_stage_triggers()
                 li_mor:log(dilemma_name .. " choice " .. tostring(choice));
                 -- add sub/dom tracking here
                 if choice == 0 then
-                    li_mor:sub_choice(target, true);
+                    li_mor:sub_choice(target_table, true);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), events[2]["sub"]);
                 elseif choice == 1 then
-                    li_mor:dom_choice(target, true);
+                    li_mor:dom_choice(target_table, true);
                     cm:trigger_dilemma(li_mor:get_char():faction():name(), events[2]["dom"]);
                 end
                 -- progression on the next turn

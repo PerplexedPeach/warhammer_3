@@ -20,14 +20,14 @@ local shrine_of_khaine_region = "wh3_main_combi_region_shrine_of_khaine";
 -- progression notification dilemma (choice of proceeding is to do previous quests or not)
 local nkari_capture_delay_process = "nkari_capture_delayed";
 local progress_next_turn = "li_morathi_nkari_progress_next_turn";
-local target = li_mor.nkari;
+local target_table = li_mor.nkari;
 
 CFSettings.mor[this_stage] = {
     dilemma_name = "li_morathi_nkari_progression",
     trait_name = "li_trait_morathi_hot_body",
     this_stage = this_stage,
     ai_corruption_chance = 15,
-    target = target,
+    target = target_table,
 };
 
 
@@ -123,7 +123,7 @@ end
 
 local function trigger_capture_mission()
     local mor = li_mor:get_char();
-    local target = li_mor:get_target_character(li_mor.nkari);
+    local target = li_mor:get_target_character(target_table);
     if mor == nil or target == nil then
         return;
     end
@@ -199,7 +199,7 @@ local function nkari_capture_end(context)
     end
 
     local mor = li_mor:get_char();
-    local target = li_mor:get_target_character(li_mor.nkari);
+    local target = li_mor:get_target_character(target_table);
     if mor == nil or target == nil then
         return;
     end
@@ -236,7 +236,8 @@ local function nkari_bind_end(context)
     end
 
     local mor = li_mor:get_char();
-    local target = li_mor:get_target_character(li_mor.nkari);
+    local target = li_mor:get_target_character(target_table);
+    li_mor:log("Nkari bind mission end, target is " .. tostring(target));
     if mor == nil or target == nil then
         return;
     end
@@ -270,10 +271,10 @@ local function nkari_bind_end(context)
             li_mor:log(dilemma_name .. " choice " .. tostring(choice));
             -- add sub/dom tracking here
             if choice == 0 then
-                li_mor:sub_choice(target, true);
+                li_mor:sub_choice(target_table, true);
                 cm:trigger_dilemma(li_mor:get_char():faction():name(), events[2]["sub"]);
             elseif choice == 1 then
-                li_mor:dom_choice(target, true);
+                li_mor:dom_choice(target_table, true);
                 cm:trigger_dilemma(li_mor:get_char():faction():name(), events[2]["dom"]);
             end
             -- progression on the next turn
@@ -365,10 +366,10 @@ local function delayed_capture(context)
             li_mor:log(capture_nkari_dilemma .. " choice " .. tostring(choice));
             -- add sub/dom tracking here
             if choice == 0 then
-                li_mor:sub_choice(target, true);
+                li_mor:sub_choice(target_table, true);
                 cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["sub"]);
             elseif choice == 1 then
-                li_mor:dom_choice(target, true);
+                li_mor:dom_choice(target_table, true);
                 cm:trigger_dilemma(li_mor:get_char():faction():name(), events[1]["dom"]);
             end
             -- trigger next mission
