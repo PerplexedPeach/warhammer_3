@@ -71,15 +71,9 @@ local function progression_response_callback(context, target_name)
     -- listener only created for human players of that faction, so no need to check here
     -- trigger dilemmas for target to respond to Miao's choice
     local miao_response = context:type();
-    li_miao:log("Miao response type " .. miao_response);
+    li_miao:log("Miao response type " .. miao_response .. " considered by " .. target_name);
     -- only care about accept or reject
-    if miao_response ~= "reject" or miao_response ~= "accept" then
-        return
-    end
-
-    local suppressed = cm:get_saved_value(suppress_next_msg);
-    if suppressed then
-        cm:set_saved_value(suppress_next_msg, false);
+    if miao_response ~= "reject" and miao_response ~= "accept" then
         return
     end
 
@@ -90,6 +84,7 @@ local function progression_response_callback(context, target_name)
     li_miao:log(target_name .. " responds to Miao's choice " .. miao_response .. " with dilemma " .. response_dilemma);
     local target = get_char(target_table);
     if target == nil then
+        li_miao:log("Target " .. target_name .. " not found, can't trigger response dilemma");
         return
     end
     cm:trigger_dilemma(target:faction():name(), response_dilemma);
@@ -109,8 +104,6 @@ local function progression_response_callback(context, target_name)
                 li_miao:log(response_dilemma .. " choice " .. tostring(choice));
                 -- on rejection player opted to pay influence
                 if choice == 1 then
-                    -- temporarily suppress next message (since the accept message will fire)
-                    cm:set_saved_value(suppress_next_msg, true);
                     li_miao:advance_stage(trait_name_for_stage(stage), stage);
                 end
                 core:remove_listener(delimma_choice_listener_name);
