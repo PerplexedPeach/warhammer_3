@@ -24,8 +24,31 @@ CFSettings["diplomacy"] = {
         },
     }
 }
+-- to show the above and the following are the same
+CFSettings["diplomacy"]["azazel"] = {
+    faction = "wh3_dlc20_chs_azazel",
+    subtype = "wh3_dlc20_sla_azazel",
+    consecutive_loss_name = "li_miaoying_consec_loss_nkari",
+    -- these should also be dilemma keys
+    miao_effect_bundles = {
+        "li_miaoying_loss_miao_nkari_1",
+        "li_miaoying_loss_miao_nkari_2",
+    },
+    self_effect_bundles = {
+        "li_miaoying_loss_nkari_miao_1",
+        "li_miaoying_loss_nkari_miao_2",
+    },
+    vassalize_dilemma = "li_miaoying_loss_nkari_miao_2_vas",
+    consecutive_loss_thresholds = {
+        2,
+        4,
+    },
+};
+
 CFSettings["corruption_factions"] = { "wh3_dlc20_chs_sigvald", "wh3_dlc20_chs_azazel" };
 CFSettings["enable_diplomacy_for_cultures"] = { ["wh3_main_sla_slaanesh"] = true, ["wh_main_chs_chaos"] = true };
+
+
 
 local function trait_name_for_stage(stage)
     if stage < 4 then
@@ -388,6 +411,7 @@ end
 local function broadcast_self()
     -- only register main progression response dilemmas when player is slaanesh
     for target_name, _ in pairs(CFSettings.diplomacy) do
+        li_miao:log("Listening for diplomacy events for " .. target_name);
         local target_table = CFSettings.diplomacy[target_name];
         local target = get_char(target_table);
         if target ~= nil and target:faction():is_human() then
