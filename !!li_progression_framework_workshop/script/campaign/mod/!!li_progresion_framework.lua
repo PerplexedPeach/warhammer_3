@@ -1,4 +1,4 @@
-local version = "2.4.3";
+local version = "2.4.5";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
@@ -61,6 +61,24 @@ function Print_settings()
     for k, v in pairs(CFSettings) do
         console_print(k .. " = " .. tostring(v));
     end
+end
+
+function Print_table(t, suppress_print)
+    local str = "";
+    for k, v in pairs(t) do
+        if type(v) == "table" then
+            local s = k .. " = {";
+            str = str .. k .. " = {\n"
+            s = Print_table(v, true);
+            str = str .. s .. "}\n";
+        else
+            str = str .. k .. " = " .. tostring(v) .. "\n";
+        end
+    end
+    if not suppress_print then
+        Mod_log(str);
+    end
+    return str;
 end
 
 function Is_character_attacker_or_defender(pending_battle, subtype_key)
@@ -129,7 +147,7 @@ function LiProgression:log(message)
 end
 
 function LiProgression:error(message)
-    self:log(" [ERROR] " .. message);
+    self:log("[ERROR] " .. message);
     script_error(self.shortname .. " " .. message);
 end
 
@@ -218,7 +236,7 @@ function LiProgression:get_character_all(subtype, factions_to_consider)
         end
     end
 
-    self:error("Could not find character " .. tostring(subtype));
+    self:error("Could not find character subtype " .. tostring(subtype));
     return nil;
 end
 
@@ -236,6 +254,7 @@ function LiProgression:get_character_faction_leader(subtype, faction_name, possi
             return faction:faction_leader();
         end
     end
+    self:log("Did not match, instead trying to find character of subtype " .. tostring(subtype) .. " in factions " .. tostring(possible_confed_factions));
     return self:get_character_all(subtype, possible_confed_factions);
 end
 
@@ -411,7 +430,7 @@ function LiProgression:initialize()
             -- check if we need to stage up
             local progress_percent = self:get_progress_percent();
             self:log("Start of turn check progress percent " .. tostring(progress_percent));
-            if progress_percent >= 100 then
+            if progress_percent >= 100 and self:progression_cooldown_left() == 0 then
                 self:_call_progression_callback(context, faction:is_human());
             end
         end,
@@ -426,6 +445,17 @@ end
 function LiProgression:queue_dilemma(dilemma, delay, faction_name)
     delay = delay or 0;
     faction_name = faction_name or self:get_char():faction():name();
+
+    -- lookup faction_name to check if it's human
+    local faction = cm:get_faction(faction_name);
+    if faction == nil or faction:is_null_interface() then
+        self:error("Attempt to queue dilemma " .. dilemma .. " for invalid faction " .. faction_name);
+        return;
+    end
+    if not faction:is_human() then
+        self:log("Attempt to queue dilemma " .. dilemma .. " for non-human faction " .. faction_name);
+        return;
+    end
     -- check if the dilemma is already in the queue
     local turns_until = self.dilemma_queue:turns_until(dilemma);
     if turns_until > 0 then
