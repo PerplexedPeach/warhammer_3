@@ -181,8 +181,12 @@ function morathi_sub:add_listeners()
         true
     );
 
+    local mor = li_mor:get_char();
+    if mor == nil then
+        return;
+    end
 
-	local current_faction = li_mor:get_char():faction();
+	local current_faction = mor:faction();
 	if current_faction and current_faction:is_null_interface() == false and current_faction:is_human() then
 		local faction = current_faction;
 

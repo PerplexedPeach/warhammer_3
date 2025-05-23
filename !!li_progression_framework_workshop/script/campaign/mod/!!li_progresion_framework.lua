@@ -1,4 +1,4 @@
-local version = "2.5.0";
+local version = "2.5.1";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
@@ -303,6 +303,10 @@ end
 
 function LiProgression:_get_art_set_name(stage)
     local stage_name = self.REGISTERED_STAGES[stage];
+    if stage_name == nil then
+        self:error("Attempt to get art set name for unregistered stage " .. tostring(stage));
+        return self.main_art_set;
+    end
     local art_set_name = self.main_art_set;
     if stage > 0 then
         art_set_name = self.main_art_set .. "_" .. stage_name;
