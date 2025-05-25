@@ -42,7 +42,7 @@ end
 local function ai_corruption_chance_pulse(context)
     local miao = li_miao:get_char();
     -- only for AI 
-    if miao == nil or context:faction():name() ~= miao:faction():name() or miao:faction():is_human() then
+    if miao == nil or context:faction():name() ~= miao:faction():name() then
         return;
     end
 
