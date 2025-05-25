@@ -1,4 +1,4 @@
-
+local version = "1.0.0";
 local miao_faction = "wh3_main_cth_the_northern_provinces";
 local miao_subtype = "wh3_main_cth_miao_ying";
 local LI_MIAOYING_MAIN_EVENT = "ScriptEventMiaoYingCorruptEvent"
@@ -8,11 +8,15 @@ local miao_art_set = "wh3_main_art_set_cth_miao_ying";
 local names_name_id = "190911577";
 
 ---@type LiProgression
-li_miao = LiProgression:new("miaoying", miao_faction, miao_subtype, miao_art_set, LI_MIAOYING_MAIN_EVENT, confed_factions, names_name_id);
+li_miao = LiProgression:new("miaoying", miao_faction, miao_subtype, miao_art_set, LI_MIAOYING_MAIN_EVENT, confed_factions,
+    names_name_id);
 
 CFSettings["miao"] = {};
 
-cm:add_first_tick_callback(function() li_miao:initialize() end);
+cm:add_first_tick_callback(function()
+    li_miao:initialize();
+    li_miao:log("Miao corruption version " .. version);
+end);
 
 
 -- hooks where each stage gets callback

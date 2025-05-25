@@ -60,3 +60,19 @@ option = cf:add_new_option("miao_human_corruption_per_turn", "slider")
 option:set_default_value(5);
 option:slider_set_min_max(0, 30);
 option:slider_set_step_size(1);
+
+-- balance adjustments
+option = cf:add_new_option("miao_speed_adjustment", "slider")
+option:set_default_value(0);
+option:slider_set_min_max(-50, 50);
+option:slider_set_step_size(5);
+
+option = cf:add_new_option("miao_charge_bonus_adjustment", "slider")
+option:set_default_value(0);
+option:slider_set_min_max(-50, 100);
+option:slider_set_step_size(5);
+
+option = cf:add_new_option("miao_ward_save_adjustment", "slider")
+option:set_default_value(0);
+option:slider_set_min_max(-50, 20);
+option:slider_set_step_size(5);
