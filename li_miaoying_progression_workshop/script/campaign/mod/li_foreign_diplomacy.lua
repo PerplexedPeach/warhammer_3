@@ -1,6 +1,6 @@
 local progression_response_listener_name = "ScriptEventNkariResponseListener";
 local response_dilemma_base = "li_miaoying_resp_";
-local suppress_next_msg = "diplomacy_suppress_next_response";
+local dilemma_trigger_name = "li_miaoying_diplomacy_trigger";
 
 
 CFSettings["diplomacy"] = {
@@ -76,6 +76,15 @@ local function progression_response_callback(context, target_name)
     if miao_response ~= "reject" and miao_response ~= "accept" then
         return
     end
+
+    local triggered_last_turn = cm:get_saved_value(dilemma_trigger_name) or 0;
+    local current_turn = cm:model():turn_number();
+    -- don't trigger if we already did this turn to avoid duplicate if we've confederated the targets
+    if triggered_last_turn == current_turn then
+        li_miao:log("Already triggered response dilemma this turn, skipping for " .. target_name);
+        return;
+    end
+    cm:set_saved_value(dilemma_trigger_name, current_turn);
 
     local stage = context:stage();
     -- trigger dilemma with choices

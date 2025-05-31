@@ -1,4 +1,4 @@
-local version = "1.0.1";
+local version = "1.0.2";
 local miao_faction = "wh3_main_cth_the_northern_provinces";
 local miao_subtype = "wh3_main_cth_miao_ying";
 local LI_MIAOYING_MAIN_EVENT = "ScriptEventMiaoYingCorruptEvent"
