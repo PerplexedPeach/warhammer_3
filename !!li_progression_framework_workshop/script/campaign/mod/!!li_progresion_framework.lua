@@ -1,4 +1,4 @@
-local version = "2.6.0";
+local version = "2.6.1";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
@@ -146,6 +146,16 @@ function LiProgression:log(message)
     Mod_log(self.shortname .. " " .. message);
 end
 
+function LiProgression:debug(message)
+    if CFSettings.debug then
+        self:log("[DEBUG] " .. message);
+    end
+end
+
+function LiProgression:warn(message)
+    self:log("[WARN] " .. message);
+end
+
 function LiProgression:error(message)
     self:log("[ERROR] " .. message);
     script_error(self.shortname .. " " .. message);
@@ -236,7 +246,7 @@ function LiProgression:get_character_all(subtype, factions_to_consider)
         end
     end
 
-    self:error("Could not find character subtype " .. tostring(subtype));
+    self:warn("Could not find character subtype " .. tostring(subtype));
     return nil;
 end
 

@@ -11,11 +11,6 @@ local function apply_effect_bundle()
     end
     cm:remove_effect_bundle_from_character(effect_bundle_name, miao);
 
-    li_miao:log("Adjusting speed by " ..
-        tostring(CFSettings.miao_speed_adjustment) .. " charge bonus by " ..
-        tostring(CFSettings.miao_charge_bonus_adjustment) .. " ward save by " ..
-        tostring(CFSettings.miao_ward_save_adjustment));
-
     local bundle = cm:create_new_custom_effect_bundle(effect_bundle_name);
     -- adjust speed, charge bonus, and ward save
     bundle:add_effect(speed_effect, "character_to_character_own", CFSettings.miao_speed_adjustment);
