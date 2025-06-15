@@ -10,7 +10,6 @@ tw_lib
 !*.py
 !*.lua
 script_dump
-submods
 */.git
 **/*.dds
 **/*.material

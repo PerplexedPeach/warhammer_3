@@ -1,4 +1,4 @@
-local version = "2.6.1";
+local version = "2.6.2";
 local printed_version = false;
 
 local progress_effect_bundle = "li_progress";
@@ -264,7 +264,6 @@ function LiProgression:get_character_faction_leader(subtype, faction_name, possi
             return faction:faction_leader();
         end
     end
-    self:log("Did not match, instead trying to find character of subtype " .. tostring(subtype) .. " in factions " .. tostring(possible_confed_factions));
     return self:get_character_all(subtype, possible_confed_factions);
 end
 
